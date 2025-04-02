@@ -36,8 +36,12 @@ void Object::Render() {
     }
 }
 
+//=============================
+// POSITIONAL FUNCTIONS
+//=============================
+
 glm::vec3 Object::GetPosition() {
-    return glm::vec3(model_matrix[3]);
+    return glm::vec3(model_matrix[3][0], model_matrix[3][1], model_matrix[3][2]);
 }
 
 bool Object::IsVisible(glm::mat4 view_projection_matrix) {

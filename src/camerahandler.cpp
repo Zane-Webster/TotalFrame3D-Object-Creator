@@ -41,7 +41,7 @@ void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
 }
 
 glm::mat4 CameraHandler::GetViewProjectionMatrix() {
-    return _GetViewMatrix() * _GetProjectionMatrix();
+    return _GetProjectionMatrix() * _GetViewMatrix();
 }
 
 //=============================

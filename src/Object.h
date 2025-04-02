@@ -36,9 +36,8 @@ class Object {
         void Load(std::string obj_path);
         void Render();
 
+        //// POSITIONAL FUNCTIONS
         glm::vec3 GetPosition();
-
-        // DOES NOT WORK
         bool IsVisible(glm::mat4 view_projection_matrix);
 
         //// MEMORY MANAGEMENT

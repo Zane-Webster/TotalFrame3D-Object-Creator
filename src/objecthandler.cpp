@@ -42,14 +42,12 @@ std::vector<GLuint> ObjectHandler::GetShaderProgramsUpdates(glm::mat4 view_proje
     UpdateAllSP(view_projection_matrix);
 
     std::vector<GLuint> temp_shader_programs = {};
-
     for (auto [shader_program, need_update] : shader_programs_need_update) {
         if (need_update) {
             temp_shader_programs.push_back(shader_program);
             need_update = false;
         }
     }
-
     return temp_shader_programs;
 }
 
@@ -59,8 +57,7 @@ std::vector<GLuint> ObjectHandler::GetShaderProgramsUpdates(glm::mat4 view_proje
 
 void ObjectHandler::Render(Object object, glm::mat4 view_projection_matrix) {
     // if visible, render
-    //if (object.IsVisible(view_projection_matrix)) object.Render();
-    object.Render();
+    if (object.IsVisible(view_projection_matrix)) object.Render();
 }
 
 void ObjectHandler::RenderAll(glm::mat4 view_projection_matrix) {
