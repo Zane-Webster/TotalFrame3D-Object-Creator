@@ -45,15 +45,38 @@ glm::vec3 Object::GetPosition() {
 }
 
 bool Object::IsVisible(glm::mat4 view_projection_matrix) {
-    glm::vec4 clip_space_position = view_projection_matrix * glm::vec4(Object::GetPosition(), 1.0f);
+    glm::vec3 half_size = size * 0.5f;
 
-    // normalize to NDC (-1 to 1)
-    clip_space_position /= clip_space_position.w;
+    glm::vec3 adjusted_position = Object::GetPosition();
 
-    // return if within screen bounds
-    return (clip_space_position.x >= -1.0f && clip_space_position.x <= 1.0f) &&
-        (clip_space_position.y >= -1.0f && clip_space_position.y <= 1.0f) &&
-        (clip_space_position.z >= -1.0f && clip_space_position.z <= 1.0f); 
+    // calculates every corner of the object
+    std::vector<glm::vec3> corners = {};
+
+    corners = {
+        adjusted_position + glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
+        adjusted_position + glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
+        adjusted_position + glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
+        adjusted_position + glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
+        adjusted_position + glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
+        adjusted_position + glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
+        adjusted_position + glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
+        adjusted_position + glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
+    };
+    
+    for (auto corner : corners) {
+        glm::vec4 clip_space_position = view_projection_matrix * glm::vec4(corner, 1.0f);
+        // normalize to -1 thru 1 by the transformation value
+        clip_space_position /= clip_space_position.w;
+    
+        // return if within screen bounds
+        if ((clip_space_position.x >= -1.0f && clip_space_position.x <= 1.0f) &&
+            (clip_space_position.y >= -1.0f && clip_space_position.y <= 1.0f) &&
+            (clip_space_position.z >= -1.0f && clip_space_position.z <= 1.0f)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //=============================

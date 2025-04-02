@@ -28,6 +28,7 @@ class Object {
         GLuint shader_program = 0;
 
         //// TRANSFORMATION
+        glm::vec3 size = glm::vec3(0.1f);
         glm::vec3 position = glm::vec3(0.0f);
         glm::mat4 model_matrix = glm::mat4(1.0f); 
 
