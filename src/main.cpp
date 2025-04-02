@@ -1,7 +1,7 @@
 /*
-TOTALFRAME3D
+TOTALFRAME3D Object Creator
 
-Mid level game framework for C++ based on SDL3 and OpenGL 3.3
+Object Creator based on TotalFrame3D
 
 ZANE WEBSTER
 2024-2025
