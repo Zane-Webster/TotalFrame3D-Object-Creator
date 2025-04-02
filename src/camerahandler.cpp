@@ -22,7 +22,7 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
 // GENERAL FUNCTIONS
 //=============================
 
-void CameraHandler::Update(GLuint shader_program) {
+void CameraHandler::UpdateShaderProgram(GLuint shader_program) {
     // get view and projection matrices
     glm::mat4 view = CameraHandler::_GetViewMatrix();
     glm::mat4 projection = CameraHandler::_GetProjectionMatrix();
@@ -32,6 +32,16 @@ void CameraHandler::Update(GLuint shader_program) {
     GLuint projection_location = glGetUniformLocation(shader_program, "projection");
     glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
+    for (auto shader_program : shader_programs) {
+        UpdateShaderProgram(shader_program);
+    }
+}
+
+glm::mat4 CameraHandler::GetViewProjectionMatrix() {
+    return _GetViewMatrix() * _GetProjectionMatrix();
 }
 
 //=============================

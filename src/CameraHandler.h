@@ -27,7 +27,10 @@ class CameraHandler {
         float sensitivity;
 
         //// GENERAL FUNCTIONS
-        void Update(GLuint shader_program);
+        void UpdateShaderProgram(GLuint shader_program);
+        void UpdateShaderPrograms(std::vector<GLuint> shader_programs);
+
+        glm::mat4 GetViewProjectionMatrix();
 
         //// CAMERA MOVEMENT
         void StartMove(SDL_Keycode key);

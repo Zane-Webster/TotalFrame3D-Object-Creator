@@ -15,7 +15,43 @@ ShaderHandler::ShaderHandler(SDL_GLContext p_context) : context(p_context) {
 // GENERAL FUNCTIONS
 //=============================
 
-void ShaderHandler::ReadShaderSourceFolder(std::string dir_path) {
+GLuint ShaderHandler::CreateShaderProgram(std::string dir_path) {
+    ShaderHandler::_ReadShaderSourceFolder(dir_path);
+
+    GLuint shader_program = glCreateProgram();
+
+    // for each type of shader
+    for (const auto& shader_type_sources : shaders_sources) {
+        // for each individual shader
+        for (const auto& [type,content] : *shader_type_sources) {
+            GLuint temp_shader = _CompileShader(type, content);
+            // attach shader to shader program
+            glAttachShader(shader_program, temp_shader);
+            glDeleteShader(temp_shader);
+            temp_shader = 0;
+        }
+    }
+
+    // link shader program to gl context
+    glLinkProgram(shader_program);
+
+    // see if successfuly linked, if not return error
+    GLint successfully_linked;
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &successfully_linked);
+    if (!successfully_linked) Util::ThrowError("ERROR LINKING SHADER", "ShaderHandler::CreateShaderProgram");
+
+    shader_programs.push_back(shader_program);
+
+    ShaderHandler::_ClearShaderSources();
+
+    return shader_program;
+}
+
+//=============================
+// PRIVATE FUNCTIONS
+//=============================
+
+void ShaderHandler::_ReadShaderSourceFolder(std::string dir_path) {
     // iterate over shader dir path 
     for (const auto& entry : std::filesystem::directory_iterator(dir_path)) {
         // if entry is dir, which it should be
@@ -47,38 +83,6 @@ void ShaderHandler::ReadShaderSourceFolder(std::string dir_path) {
     }
 }
 
-GLuint ShaderHandler::CreateShaderProgram() {
-    GLuint shader_program = glCreateProgram();
-
-    // for each type of shader
-    for (const auto& shader_type_sources : shaders_sources) {
-        // for each individual shader
-        for (const auto& [type,content] : *shader_type_sources) {
-            GLuint temp_shader = _CompileShader(type, content);
-            // attach shader to shader program
-            glAttachShader(shader_program, temp_shader);
-            glDeleteShader(temp_shader);
-            temp_shader = 0;
-        }
-    }
-
-    // link shader program to gl context
-    glLinkProgram(shader_program);
-
-    // see if successfuly linked, if not return error
-    GLint successfully_linked;
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &successfully_linked);
-    if (!successfully_linked) Util::ThrowError("ERROR LINKING SHADER", "ShaderHandler::CreateShaderProgram");
-
-    shader_programs.push_back(shader_program);
-
-    return shader_program;
-}
-
-//=============================
-// PRIVATE FUNCTIONS
-//=============================
-
 GLuint ShaderHandler::_CompileShader(GLenum type, std::string source) {
     // create shader to be compiled
     GLuint shader = glCreateShader(type);
@@ -92,14 +96,16 @@ GLuint ShaderHandler::_CompileShader(GLenum type, std::string source) {
     // see if successfuly compiled, if not return error
     GLint successfully_compiled;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &successfully_compiled);
-    if (!successfully_compiled) {
-        char info_log[512];
-        glGetShaderInfoLog(shader, 512, nullptr, info_log);
-        std::cout << info_log << '\n';
-        Util::ThrowError("ERROR COMPILING SHADER", "ShaderHandler::CompileShader");
-    }
+    if (!successfully_compiled) Util::ThrowError("ERROR COMPILING SHADER", "ShaderHandler::CompileShader");
 
     return shader;
+}
+
+void ShaderHandler::_ClearShaderSources() {
+    vert_shaders_sources = {};
+    frag_shaders_sources = {};
+    geom_shaders_sources = {};
+    shaders_sources = {};
 }
 
 //=============================

@@ -20,16 +20,26 @@
 
 class Object {
     public:
-        Object(std::string name, TotalFrame::OBJECT_TYPE type, std::string obj_path, GLuint shader_program);
+        Object(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, std::string obj_path, GLuint shader_program);
 
         //// BASIC ATTRIBUTES
         std::string name = "";
         TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::BASIC_OBJ;
+        GLuint shader_program = 0;
+
+        //// TRANSFORMATION
+        glm::vec3 position = glm::vec3(0.0f);
+        glm::mat4 model_matrix = glm::mat4(1.0f); 
 
         //// BASIC FUNCTIONS
         void Verify();
-        void Load(std::string obj_path, GLuint shader_program);
+        void Load(std::string obj_path);
         void Render();
+
+        glm::vec3 GetPosition();
+
+        // DOES NOT WORK
+        bool IsVisible(glm::mat4 view_projection_matrix);
 
         //// MEMORY MANAGEMENT
         void FreeAll();

@@ -4,8 +4,8 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-Object::Object(std::string p_name, TotalFrame::OBJECT_TYPE p_type, std::string p_obj_path, GLuint p_shader_program) : name(p_name), type(p_type) {
-    Object::Load(p_obj_path, p_shader_program);
+Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, std::string p_obj_path, GLuint p_shader_program) : name(p_name), position(p_position), type(p_type), shader_program(p_shader_program) {
+    Object::Load(p_obj_path);
 }
 
 //=============================
@@ -22,7 +22,7 @@ void Object::Verify() {
     }
 }
 
-void Object::Load(std::string obj_path, GLuint shader_program) {
+void Object::Load(std::string obj_path) {
     triangles[shader_program] = Object::_Read(obj_path);
 }
 
@@ -34,6 +34,22 @@ void Object::Render() {
             triangle.Render();
         }
     }
+}
+
+glm::vec3 Object::GetPosition() {
+    return glm::vec3(model_matrix[3]);
+}
+
+bool Object::IsVisible(glm::mat4 view_projection_matrix) {
+    glm::vec4 clip_space_position = view_projection_matrix * glm::vec4(Object::GetPosition(), 1.0f);
+
+    // normalize to NDC (-1 to 1)
+    clip_space_position /= clip_space_position.w;
+
+    // return if within screen bounds
+    return (clip_space_position.x >= -1.0f && clip_space_position.x <= 1.0f) &&
+        (clip_space_position.y >= -1.0f && clip_space_position.y <= 1.0f) &&
+        (clip_space_position.z >= -1.0f && clip_space_position.z <= 1.0f); 
 }
 
 //=============================

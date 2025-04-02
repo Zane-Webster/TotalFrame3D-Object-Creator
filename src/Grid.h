@@ -16,7 +16,7 @@
 
 class Grid {
     public:
-        Grid(float size = 0.1f);
+        Grid(float size = 0.05f);
 
         float size;
 

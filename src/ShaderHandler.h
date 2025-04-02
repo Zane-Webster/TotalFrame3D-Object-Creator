@@ -24,11 +24,8 @@ class ShaderHandler {
         ShaderHandler(SDL_GLContext context);
 
         //// BASIC SHADER FUNCTIONS
-        // reads shader source folder and adds contents to proper source files
-        void ReadShaderSourceFolder(std::string dir_path);
-
         // creates and returns shader program based on 
-        GLuint CreateShaderProgram();
+        GLuint CreateShaderProgram(std::string dir_path);
 
         //// MEMORY MANAGEMENT
         void FreeAll();
@@ -53,8 +50,12 @@ class ShaderHandler {
         std::vector<std::shared_ptr<std::unordered_map<GLenum, std::string>>> shaders_sources = {};
 
         //// BASIC SHADER FUNCTIONS
+        // reads shaders source folder and adds contents to proper source maps
+        void _ReadShaderSourceFolder(std::string dir_path);
+
         // compiles shader to be used in shader program
         GLuint _CompileShader(GLenum type, std::string source);
+        void _ClearShaderSources();
 };
 
 
