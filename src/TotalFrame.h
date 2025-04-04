@@ -4,16 +4,11 @@
 #pragma once
 
 #include <iostream>
-
-#include <memory>
-#include <vector>
 #include <array>
 #include <unordered_map>
 
-#include <cmath>
-#include <ctime>
-
 #include <SDL3/SDL.h>
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
@@ -24,8 +19,12 @@ ABOUT:
 Contains TotalFrame structs
 */
 
-#ifndef MOVEMENT_KEYSET
-#define MOVEMENT_KEYSET std::array<SDL_Keycode, 6>
+#ifndef TF_MOVEMENT_KEYSET
+#define TF_MOVEMENT_KEYSET std::array<SDL_Keycode, 6>
+#endif
+
+#ifndef TF_TRIANGLE_VERTICES
+#define TF_TRIANGLE_VERTICES std::array<GLfloat, 18>
 #endif
 
 class TotalFrame {
@@ -47,10 +46,10 @@ class TotalFrame {
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_FORWARD = {SDLK_W, SDLK_UP};
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_BACK = {SDLK_S, SDLK_DOWN};
 
-        static constexpr MOVEMENT_KEYSET WASD_MOVEMENT_KEYS = {SDLK_W, SDLK_A, SDLK_S, SDLK_D, SDLK_SPACE, SDLK_LCTRL};
-        static constexpr MOVEMENT_KEYSET ARROW_MOVEMENT_KEYS = {SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT, SDLK_SPACE, SDLK_LCTRL};
+        static constexpr TF_MOVEMENT_KEYSET WASD_MOVEMENT_KEYS = {SDLK_W, SDLK_A, SDLK_S, SDLK_D, SDLK_SPACE, SDLK_LCTRL};
+        static constexpr TF_MOVEMENT_KEYSET ARROW_MOVEMENT_KEYS = {SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT, SDLK_SPACE, SDLK_LCTRL};
 
-        static constexpr std::array<MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
+        static constexpr std::array<TF_MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
 
         struct MoveQueue {
             MoveQueue(KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {
@@ -87,6 +86,17 @@ class TotalFrame {
             }
 
             MoveQueue() = default;
+        };
+
+        struct Ray {
+            Ray(glm::vec3 p_origin, glm::vec3 p_direction) : origin(p_origin), direction(p_direction) {
+                ;
+            }
+
+            glm::vec3 origin = glm::vec3(0.0f);
+            glm::vec3 direction = glm::vec3(0.0f);
+
+            Ray() = default; 
         };
 };
 

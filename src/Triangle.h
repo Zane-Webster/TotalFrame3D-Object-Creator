@@ -4,8 +4,6 @@
 #pragma once
 
 #include <iostream>
-#include <memory>
-#include <array>
 #include <vector>
 
 #include <SDL3/SDL.h>
@@ -17,25 +15,26 @@
 #include "Util.h"
 
 /*
-Triangle 
+ABOUT:
+A basic colored triangle. Contains vertices, vertex array and vertex buffer.
+Typical lifecycle is construct, LoadVertices, Build then Render. 
 */
 
 class Triangle {
     public:
         Triangle(std::vector<GLfloat> vertices);
+        // do NOT try using ~ deconstructor. i spent 4 hours debugging this. 
+        void FreeAll();
 
-        //// BASIC FUNCTIONS
+        //////// BASIC FUNCTIONS
         // verifys vertex_array and vertex_buffer is valid (non-zero)
         bool Verify();
         void LoadVertices(std::vector<GLfloat> vertices);
         void Build();
         void Render();
 
-        //// MEMORY MANAGEMENT
-        void FreeAll();
-
     private:
-        std::array<GLfloat, 18> vertices;
+        TF_TRIANGLE_VERTICES vertices;
         GLuint vertex_array = 0;
         GLuint vertex_buffer = 0;
 

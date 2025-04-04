@@ -26,10 +26,12 @@ WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::st
     if (glewInit() != GLEW_OK) Util::ThrowError("GLEW NOT INITIALIZED PROPERLY", "windowhandler");
 
     glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_CULL_FACE);
     glClearColor(color.r, color.g, color.b, color.a);
     glViewport(0, 0, width, height);
 
     frame_duration = 1000.0f / target_fps;
+    aspect_ratio = float(width) / float(height);
 }
 
 //=============================
@@ -66,15 +68,6 @@ void WindowHandler::UpdateDeltaTime(Uint64 p_current_app_time, Uint64 time_frequ
 }
 
 //=============================
-// MEMORY MANAGEMENT
-//=============================
-
-void WindowHandler::FreeAll() {
-    SDL_DestroyWindow(window);
-    SDL_GL_DestroyContext(context);
-}
-
-//=============================
 // SETTERS
 //=============================
 
@@ -100,4 +93,13 @@ void WindowHandler::SetColor(SDL_FColor p_color) {
 
 std::shared_ptr<double> WindowHandler::DeltaTime() {
     return delta_time;
+}
+
+//=============================
+// MEMORY MANAGEMENT
+//=============================s
+
+WindowHandler::~WindowHandler() {
+    SDL_DestroyWindow(window);
+    SDL_GL_DestroyContext(context);
 }

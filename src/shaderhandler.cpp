@@ -12,14 +12,14 @@ ShaderHandler::ShaderHandler(SDL_GLContext p_context) : context(p_context) {
 }
 
 //=============================
-// GENERAL FUNCTIONS
+// BASIC FUNCTIONS
 //=============================
 
 GLuint ShaderHandler::CreateShaderProgram(std::string dir_path) {
     ShaderHandler::_ReadShaderSourceFolder(dir_path);
 
-    GLuint shader_program = glCreateProgram();
-
+    GLuint shader_program = glCreateProgram();  
+    
     // for each type of shader
     for (const auto& shader_type_sources : shaders_sources) {
         // for each individual shader
@@ -102,17 +102,16 @@ GLuint ShaderHandler::_CompileShader(GLenum type, std::string source) {
 }
 
 void ShaderHandler::_ClearShaderSources() {
-    vert_shaders_sources = {};
-    frag_shaders_sources = {};
-    geom_shaders_sources = {};
-    shaders_sources = {};
+    vert_shaders_sources.clear();
+    frag_shaders_sources.clear();
+    geom_shaders_sources.clear();
 }
 
 //=============================
 // MEMORY MANAGEMENT
 //=============================
 
-void ShaderHandler::FreeAll() {
+ShaderHandler::~ShaderHandler() {
     for (const auto& shader_program : shader_programs) {
         glDeleteProgram(shader_program);
     }

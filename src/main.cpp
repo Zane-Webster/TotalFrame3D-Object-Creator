@@ -33,8 +33,11 @@ ZANE WEBSTER
 #include "CameraHandler.h"
 #include "Triangle.h"
 #include "Object.h"
-#include "Grid.h"
 #include "ObjectHandler.h"
+#include "Creator.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
 
 int main(int argc, char* argv[]) {
     ////////// APP INITILIZATION
@@ -46,8 +49,7 @@ int main(int argc, char* argv[]) {
     AudioHandler audio_handler;
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 0.0f, 6.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
-    ObjectHandler object_handler;
-    Grid grid(0.05f);
+    ObjectHandler object_handler(window_handler.aspect_ratio);
 
     ////////// APP VARIABLES
     //// GENERAL
@@ -57,9 +59,10 @@ int main(int argc, char* argv[]) {
     std::string app_state = "game";
     //// INPUT
     float mouse_x, mouse_y; //SDL_GetMouseState(&mouse_x, &mouse_y);
+    std::shared_ptr<Object> mouse_object = nullptr;
     std::shared_ptr<double> delta_time = window_handler.DeltaTime();
     TotalFrame::KEYSET keyset = TotalFrame::KEYSET::WASD;
-    MOVEMENT_KEYSET movement_keys = TotalFrame::MOVEMENT_KEYS[keyset];
+    TF_MOVEMENT_KEYSET movement_keys = TotalFrame::MOVEMENT_KEYS[keyset];
 
     ////////// LOAD IMAGES
 
@@ -74,7 +77,7 @@ int main(int argc, char* argv[]) {
     ////////// GAME OBJECTS
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/cube_shader");
 
-    object_handler.Create("cube", {0.0f, 0.0f, 0.0f}, TotalFrame::OBJECT_TYPE::BASIC_OBJ, "res/tfobj/cube.tfobj", cube_sp);
+    object_handler.Create("cube", {0.0f, 0.0f, 0.0f}, TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp);
 
     ////////// TEXT
 
@@ -114,21 +117,30 @@ int main(int argc, char* argv[]) {
                     // MOUSE MOVEMENT
                     //
                     ////////
-
+                    
                     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                        if (event.button.button == SDL_BUTTON_LEFT) {
+                        if (event.button.button == SDL_BUTTON_MIDDLE) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
                             camera.StartMouseMove(mouse_x, mouse_y);
                         }
                         break;
                     case SDL_EVENT_MOUSE_MOTION:
-                        if (event.motion.state && SDL_BUTTON_LMASK) {
+                        //// FACE TESTING
+                        SDL_GetMouseState(&mouse_x, &mouse_y);
+                        glm::vec3 face_hit_direction;
+                        mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_direction);
+                        if (mouse_object != nullptr) {
+                            Util::Debug(mouse_object->name);
+                            Util::Debug(glm::to_string(face_hit_direction));
+                        }
+
+                        if (event.motion.state && SDL_BUTTON_MMASK) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
                             if (camera.UpdateMouseMovement(mouse_x, mouse_y)) window_handler.NeedRender();
                         }
                         break;
                     case SDL_EVENT_MOUSE_BUTTON_UP:
-                        if (event.button.button == SDL_BUTTON_LEFT) {
+                        if (event.button.button == SDL_BUTTON_MIDDLE) {
                             camera.StopMouseMove();
                         }
                         break;
@@ -167,9 +179,8 @@ int main(int argc, char* argv[]) {
             if (window_handler.StartRender()) {
                 window_handler.Clear();
                 
-                camera.UpdateShaderPrograms(object_handler.GetShaderProgramsUpdates(camera.GetViewProjectionMatrix()));
-
-                object_handler.RenderAll(camera.GetViewProjectionMatrix());
+                camera.UpdateShaderPrograms(object_handler.GetShaderProgramsUpdates());
+                object_handler.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position);
 
                 window_handler.Update();
                 window_handler.EndRender();
@@ -178,11 +189,9 @@ int main(int argc, char* argv[]) {
     }
 
     ////////// MEMORY MANAGEMENT
-    window_handler.FreeAll();
     audio_handler.FreeAll();
-    shader_handler.FreeAll();
     object_handler.FreeAll();
-    
+
     SDL_Quit();
     Mix_Quit();
     TTF_Quit();

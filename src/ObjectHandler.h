@@ -16,41 +16,57 @@
 #include "Util.h"
 #include "Object.h"
 
+/*
+ABOUT:
+Handles the creation, updating and rendering of Objects.
+
+NOTES:
+You can create Objects directly using object_handler.Create() (preferred method).
+Ensure you link the CameraHandler's view_projection_matrix to ObjectHandler
+Ensure you call UpdateAndRenderAll(), along with CameraHandler::UpdateShaderPrograms(ObjectHandler::GetShaderProgramsUpdates()) for proper results in rendering and handling Objects.
+*/
+
 class ObjectHandler {
     public:
-        ObjectHandler();
+        ObjectHandler(float aspect_ratio);
+        void FreeAll();
 
-        //// BASIC ATTRIBUTES
+        //////// BASIC
+        void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
+
+        //////// OBJECT CREATION
+        // creates an object
+        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
+        // adds a pre-created object
+        void Add(Object object);
+
+        //////// SHADER PROGRAMS
+        // updates a shader program if it needs updated
+        void UpdateSP(Object Object, bool is_visible);
+        // returns all shader programs that need updated
+        std::vector<GLuint> GetShaderProgramsUpdates();
+
+        //////// CAMERA SCALING
+        void UpdateObjectCameraScale(Object object, glm::vec3 camera_position, bool is_visible);
+
+        //////// RAYS
+        std::shared_ptr<Object> GetRayCollidingObject(TotalFrame::Ray ray);
+        std::shared_ptr<Object> GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
+        std::vector<std::shared_ptr<Object>> GetRayCollidingObjects(TotalFrame::Ray ray);
+
+        //////// RENDERING
+        // renders an object if it is in view
+        void Render(Object object, bool is_visible);
+
+    private:
+        //////// BASIC ATTRIBUTES
         std::vector<Object> objects;
         // groups objects by which shader program they use
         std::unordered_map<GLuint, std::vector<Object>> shader_program_groups = {};
         // says which shader_programs need to be updated
         std::unordered_map<GLuint, bool> shader_programs_need_update = {};
 
-        //// OBJECT CREATION
-        // creates an object
-        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, std::string obj_path, GLuint shader_program);
-        // adds a pre-created object
-        void Add(Object object);
-
-        //// SHADER PROGRAMS
-        // updates a shader program if it needs updated
-        void UpdateSP(Object object, glm::mat4 view_projection_matrix);
-        // updates all shader programs if they need updated
-        void UpdateAllSP(glm::mat4 view_projection_matrix);
-        // returns all shader programs that need updated
-        std::vector<GLuint> GetShaderProgramsUpdates(glm::mat4 view_projection_matrix);
-
-        //// RENDERING
-        // renders an object if it is in view
-        void Render(Object object, glm::mat4 view_projection_matrix);
-        // renders all objects that are in view
-        void RenderAll(glm::mat4 view_projection_matrix);
-
-        //// MEMORY MANAGEMENT
-        void FreeAll();
-
-    private:
+        float aspect_ratio = 1.778f;
 
 };
 

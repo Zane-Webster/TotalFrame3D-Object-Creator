@@ -1,31 +1,27 @@
-#ifndef SRC_GRID_H_
-#define SRC_GRID_H_
+#ifndef SRC_CREATOR_H_
+#define SRC_CREATOR_H_
 
 #pragma once
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <memory>
 
 #include <SDL3/SDL.h>
-
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include "TotalFrame.h"
 #include "Util.h"
+#include "ObjectHandler.h"
 
-class Grid {
+class Creator {
     public:
-        Grid(float size = 0.05f);
-
-        float size;
-
-        std::vector<glm::vec3> coordinates;
-
-        void Render();
+        
 
     private:
     
 };
 
-#endif // SRC_GRID_H_
+#endif // SRC_CREATOR_H_

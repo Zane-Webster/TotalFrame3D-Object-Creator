@@ -21,6 +21,8 @@ class AudioHandler {
     public:
         //////// CONSTRUCTOR
         AudioHandler();
+        // crashes when using ~AudioHandler(). idk why
+        void FreeAll();
 
         //////// DELOADING
         void ClearAll();
@@ -41,9 +43,6 @@ class AudioHandler {
 
         //////// GETTERS
         std::string GetMusicState();
-
-        //////// MEMORY MANAGEMENT
-        void FreeAll();
 
     private:
         //////// BASICS

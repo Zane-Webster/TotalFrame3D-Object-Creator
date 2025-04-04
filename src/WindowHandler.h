@@ -23,20 +23,21 @@ ABOUT:
 Controls the renderer, window information and frame rate.
 
 NOTES:
-Images are created in ImageHandler.h.
-Animations are created in AnimationHandler.h.
+Creates OpenGL context. Can be accesed by direct reference with window_handler.context.
 */
 
 class WindowHandler {
     public:
         ////////// DEFAULT CONSTRUCTOR
         WindowHandler(Uint16 window_width, Uint16 window_height, SDL_FColor window_color, std::string window_title, float target_fps = 60.0f);
+        ~WindowHandler();
 
         ////////// BASICS
         SDL_Window* window = nullptr;
         Uint16 width, height;
         float target_fps;
         SDL_GLContext context;
+        float aspect_ratio = 0.0f;
 
         ////////// RENDERING
         void Update();
@@ -44,9 +45,6 @@ class WindowHandler {
 
         ////////// DELTA TIME
         void UpdateDeltaTime(Uint64 current_app_time, Uint64 time_frequency);
-
-        ////////// MEMORY MANAGEMENT
-        void FreeAll();
 
         ////////// SETTERS
         void NeedRender();
