@@ -52,6 +52,9 @@ class WindowHandler {
         void EndRender();
         void SetColor(SDL_FColor color);
 
+        void PassNamePtr(const std::shared_ptr<std::string>& name);
+        void UpdateName();
+
         ////////// GETTERS
         std::shared_ptr<double> DeltaTime(); 
 
@@ -62,11 +65,13 @@ class WindowHandler {
         SDL_FColor color;
         bool need_render = true;
 
+        std::shared_ptr<std::string> current_file_name = std::make_shared<std::string>();
+
         ////////// DELTA TIME
         float frame_duration = 0.0f;
         Uint64 last_app_time = 0;
         Uint64 current_app_time = 0;
-        std::shared_ptr<double> delta_time = std::make_shared<double>(0.0);;
+        std::shared_ptr<double> delta_time = std::make_shared<double>(0.0);
 
 };
 

@@ -87,6 +87,19 @@ void WindowHandler::SetColor(SDL_FColor p_color) {
     color = p_color;
 }
 
+void WindowHandler::PassNamePtr(const std::shared_ptr<std::string>& name) {
+    current_file_name = name;
+    WindowHandler::UpdateName();
+}
+
+void WindowHandler::UpdateName() {
+    std::string temp_title = "";
+    temp_title += title;
+    temp_title += " | ";
+    temp_title += *current_file_name;
+    SDL_SetWindowTitle(window, temp_title.c_str());
+}
+
 //=============================
 // GETTERS
 //=============================

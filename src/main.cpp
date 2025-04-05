@@ -12,6 +12,9 @@ ZANE WEBSTER
 #include <memory>
 #include <vector>
 #include <array>
+#include <string>
+
+#include <filesystem>
 
 //// SDL LIBRARIES
 #include <SDL3/SDL.h>
@@ -53,7 +56,9 @@ int main(int argc, char* argv[]) {
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 0.0f, 6.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     ObjectHandler object_handler(window_handler.aspect_ratio);
-    Creator creator("objects");
+    Creator creator(std::filesystem::current_path().string());
+
+    window_handler.PassNamePtr(creator.GetName());
 
     ////////// APP VARIABLES
     //// GENERAL
@@ -80,8 +85,8 @@ int main(int argc, char* argv[]) {
 
     ////////// GAME OBJECTS
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/cube_shader");
-
-    object_handler.Create("cube", {0.0f, 0.0f, 0.0f}, TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp);
+    
+    //object_handler.Create("cube", {0.0f, 0.0f, 0.0f}, TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp);
 
     ////////// TEXT
 
@@ -130,6 +135,9 @@ int main(int argc, char* argv[]) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
                             camera.StartMouseMove(mouse_x, mouse_y);
                         }
+                        if (event.button.button == SDL_BUTTON_RIGHT) {
+                            //
+                        }
                         break;
                     case SDL_EVENT_MOUSE_MOTION:
                         //// FACE TESTING
@@ -152,13 +160,34 @@ int main(int argc, char* argv[]) {
                         }
                         break;
 
-                    ////////
-                    //
-                    // KEYBOARD MOVEMENT
-                    //
-                    ////////
-
                     case SDL_EVENT_KEY_DOWN:
+                        ////////
+                        //
+                        // FUNCTION KEYS
+                        //
+                        ////////
+
+                        if (SDL_GetModState() & SDL_KMOD_ALT) {
+                            if (event.key.key == SDLK_S) {
+                                creator.Save(object_handler.GetData());
+                                window_handler.UpdateName();
+                            }
+                            if (event.key.key == SDLK_O) {
+                                std::string loaded_object_path = creator.Load();
+                                if (loaded_object_path != "\n") {
+                                    object_handler.ClearAndCreate("cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, loaded_object_path, cube_sp);
+                                    window_handler.NeedRender();
+                                    window_handler.UpdateName();
+                                }
+                            }
+                        }
+
+                        ////////
+                        //
+                        // KEYBOARD MOVEMENT
+                        //
+                        ////////
+
                         for (auto movement_key : movement_keys) {
                             if (event.key.key == movement_key) {
                                 camera.StartMove(event.key.key);

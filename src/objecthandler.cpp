@@ -10,6 +10,7 @@ ObjectHandler::ObjectHandler(float p_aspect_ratio) : aspect_ratio(p_aspect_ratio
 //=============================
 // BASIC FUNCTIONS
 //=============================
+
 void ObjectHandler::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 p_camera_position) {
     for (auto object : objects) {
         if (object.IsVisible(camera_view_projection_matrix)) {
@@ -19,6 +20,15 @@ void ObjectHandler::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, 
         }
     }
 }
+
+std::string ObjectHandler::GetData() {
+    std::string temp_data = "";
+    for (auto object : objects) {
+        temp_data += object.GetData();
+    }
+    return temp_data;
+}
+
 //=============================
 // CREATION FUNCTIONS
 //=============================
@@ -33,6 +43,11 @@ void ObjectHandler::Add(Object object) {
     objects.push_back(object);
     shader_program_groups[object.shader_program].push_back(object);
     shader_programs_need_update[object.shader_program] = true;
+}
+
+void ObjectHandler::ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program) {
+    objects.clear();
+    ObjectHandler::Create(name, position, type, size, obj_path, shader_program);
 }
 
 //=============================

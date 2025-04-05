@@ -33,6 +33,8 @@ class Triangle {
         void Build();
         void Render();
 
+        std::string GetData(float aspect_ratio);
+
     private:
         TF_TRIANGLE_VERTICES vertices;
         GLuint vertex_array = 0;

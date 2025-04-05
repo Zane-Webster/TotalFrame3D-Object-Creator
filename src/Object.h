@@ -41,6 +41,8 @@ class Object {
         void Load(std::string obj_path, std::string object_data_str = "");
         void Render();
 
+        std::string GetData();
+
         //////// POSITIONAL FUNCTIONS
         void UpdatePosition(glm::vec3 camera_position);
         glm::vec3 GetPosition();

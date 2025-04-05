@@ -42,6 +42,17 @@ void Object::Render() {
     }
 }
 
+std::string Object::GetData() {
+    std::string temp_data = "";
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            temp_data += triangle.GetData(aspect_ratio);
+            temp_data += '\n';
+        }
+    }
+    return temp_data;
+}
+
 //=============================
 // POSITIONAL FUNCTIONS
 //=============================
@@ -231,7 +242,7 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
 
     // read through the entire object data string and split it into triangle data lines
     for (auto letter : object_data_str) {
-        if (letter == '/') {
+        if (letter == '\n') {
             temp_vertices_str.push_back(temp_number_str);
             temp_number_str = "";
             continue;

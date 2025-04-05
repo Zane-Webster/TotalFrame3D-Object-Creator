@@ -34,11 +34,15 @@ class ObjectHandler {
         //////// BASIC
         void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
 
+        std::string GetData();
+
         //////// OBJECT CREATION
         // creates an object
         void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
         // adds a pre-created object
         void Add(Object object);
+
+        void ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
 
         //////// SHADER PROGRAMS
         // updates a shader program if it needs updated

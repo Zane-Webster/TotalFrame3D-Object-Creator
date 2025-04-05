@@ -49,6 +49,22 @@ void Triangle::Render() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+std::string Triangle::GetData(float aspect_ratio) {
+    std::string temp_data = "";
+    // undo aspect ratio stretching
+    vertices[1] /= aspect_ratio;
+    vertices[7] /= aspect_ratio;
+    vertices[13] /= aspect_ratio;
+
+    for (auto vertice : vertices) {
+        temp_data += std::to_string(vertice);
+        temp_data += ' ';
+    }
+    //get rid of the last space
+    temp_data.pop_back();
+    return temp_data;
+}
+
 //=============================
 // MEMORY MANAGEMENT
 //=============================
