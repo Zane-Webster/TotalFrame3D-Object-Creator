@@ -24,6 +24,9 @@ ZANE WEBSTER
 //// GLM
 #include <glm/glm.hpp>
 
+//// TFD
+#include "tinyfiledialogs.h"
+
 //// TOTAL-FRAME LIBRARIES
 #include "TotalFrame.h"
 #include "Util.h"
@@ -50,6 +53,7 @@ int main(int argc, char* argv[]) {
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 0.0f, 6.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     ObjectHandler object_handler(window_handler.aspect_ratio);
+    Creator creator("objects");
 
     ////////// APP VARIABLES
     //// GENERAL
@@ -119,6 +123,9 @@ int main(int argc, char* argv[]) {
                     ////////
                     
                     case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                        if (event.button.button == SDL_BUTTON_LEFT) {
+                            creator.ChooseColor();
+                        }
                         if (event.button.button == SDL_BUTTON_MIDDLE) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
                             camera.StartMouseMove(mouse_x, mouse_y);

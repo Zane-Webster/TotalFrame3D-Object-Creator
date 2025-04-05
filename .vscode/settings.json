@@ -58,6 +58,7 @@
         "text_encoding": "cpp",
         "variant": "cpp",
         "cstring": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "filesystem": "cpp"
     }
 }

@@ -28,7 +28,7 @@ Use ObjectHandler to control objects for ease of use and safety.
 
 class Object {
     public:
-        Object(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio);
+        Object(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
         void FreeAll();
 
         //////// BASIC ATTRIBUTES
@@ -38,7 +38,7 @@ class Object {
 
         //////// BASIC FUNCTIONS
         void Verify();
-        void Load(std::string obj_path);
+        void Load(std::string obj_path, std::string object_data_str = "");
         void Render();
 
         //////// POSITIONAL FUNCTIONS
@@ -73,7 +73,7 @@ class Object {
 
         //////// BASIC FUNCTIONS
         std::vector<Triangle> _Read(std::string obj_path);
-    
+        std::vector<Triangle> _CreateFromStr(std::string object_data_str);
 };
 
 #endif // SRC_OBJECT_H_

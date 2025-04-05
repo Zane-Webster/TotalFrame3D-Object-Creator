@@ -4,8 +4,8 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio) : name(p_name), position(p_position), type(p_type), size(p_size), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
-    Object::Load(p_obj_path);
+Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) : name(p_name), position(p_position), type(p_type), size(p_size), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
+    Object::Load(p_obj_path, object_data_str);
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
@@ -27,8 +27,9 @@ void Object::Verify() {
     }
 }
 
-void Object::Load(std::string obj_path) {
-    triangles[shader_program] = Object::_Read(obj_path);
+void Object::Load(std::string obj_path, std::string object_data_str) {
+    if (object_data_str == "") triangles[shader_program] = Object::_Read(obj_path);
+    else triangles[shader_program] = Object::_CreateFromStr(object_data_str);
 }
 
 void Object::Render() {
@@ -214,28 +215,37 @@ std::vector<Triangle> Object::_Read(std::string obj_path) {
         return {};
     }
 
-    //// READ FILE AND ADD TO LINES VECTOR
-
-    std::vector<std::string> lines = {};
+    //// read file, add to string then pass through Object::_CreateFromStr
     std::ifstream obj_file(obj_path);
-    std::string temp_line = "";
+    std::string object_data((std::istreambuf_iterator<char>(obj_file)), std::istreambuf_iterator<char>());
+    
+    return Object::_CreateFromStr(object_data);
+}
 
-    // read file line by line
-    while (std::getline(obj_file, temp_line)) {
-        lines.push_back(temp_line);
+std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
+    // define temporary variables
+    std::vector<Triangle> temp_triangles = {};
+    std::vector<std::string> temp_vertices_str = {};
+    std::vector<GLfloat> temp_vertices = {};
+    std::string temp_number_str = "";
+
+    // read through the entire object data string and split it into triangle data lines
+    for (auto letter : object_data_str) {
+        if (letter == '/') {
+            temp_vertices_str.push_back(temp_number_str);
+            temp_number_str = "";
+            continue;
+        }
+        temp_number_str += letter;
     }
 
-    //// CONVERT LINES TO TRIANGLE VECTOR
+    // read through each set of vertices (triangle data), add to temp_vertices, create a triangle from the temp_vertices, and build the triangle
+    for (auto line : temp_vertices_str) {
+        temp_vertices = {};
+        temp_number_str = {};
 
-    std::vector<Triangle> temp_triangles = {};
-
-    for (auto line : lines) {
-        std::vector<GLfloat> temp_vertices = {};
-        std::string temp_number_str = "";
-
-        // convert each line from str to float and add to temp_vertices, check for ' ' to seperate each number
-        for (int i = 0; i < line.size(); i++) {
-            if (line[i] == ' ') {
+        for (auto letter : line) {
+            if (letter == ' ') {
                 temp_vertices.push_back(std::stof(temp_number_str));
 
                 // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
@@ -244,14 +254,13 @@ std::vector<Triangle> Object::_Read(std::string obj_path) {
                 temp_number_str = "";
                 continue;
             }
-            temp_number_str += line[i];
+            temp_number_str += letter;
         }
 
-        // push the last number because there is no space at the end
         temp_vertices.push_back(std::stof(temp_number_str));
 
         temp_triangles.push_back(Triangle(temp_vertices));
-
+    
         temp_triangles.back().Build();
     }
 

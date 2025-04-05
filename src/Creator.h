@@ -12,15 +12,42 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+//// TFD
+#include "tinyfiledialogs.h"
+
+#include <filesystem>
+#include <fstream>
+
 #include "TotalFrame.h"
 #include "Util.h"
 #include "ObjectHandler.h"
 
 class Creator {
     public:
-        
+        Creator(std::string objects_path);
+
+        bool saved = false;
+
+        // save object data
+        void Save(std::string objects_data);
+
+        // load object data
+        std::string Load();
+
+        void Backup();
+
+        void ChooseColor();
 
     private:
+        glm::vec4 color = glm::vec4(1.0f);
+        std::string objects_path = "";
+
+        bool first_save = false;
+
+        const char* filter_patterns[1] = {"*.tfobj"};
+
+        void _InitSave(std::string objects_data);
+        
     
 };
 
