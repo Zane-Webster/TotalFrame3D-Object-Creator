@@ -11,13 +11,17 @@ ObjectHandler::ObjectHandler(float p_aspect_ratio) : aspect_ratio(p_aspect_ratio
 // BASIC FUNCTIONS
 //=============================
 
-void ObjectHandler::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 p_camera_position) {
+void ObjectHandler::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position) {
     for (auto object : objects) {
-        if (object.IsVisible(camera_view_projection_matrix)) {
-            ObjectHandler::UpdateSP(object, true);
-            ObjectHandler::UpdateObjectCameraScale(object, p_camera_position, true);
-            ObjectHandler::Render(object, true);
-        }
+        ObjectHandler::UpdateAndRender(object, camera_view_projection_matrix, camera_position);
+    }
+}
+
+void ObjectHandler::UpdateAndRender(Object object, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position) {
+    if (object.IsVisible(camera_view_projection_matrix)) {
+        ObjectHandler::UpdateSP(object, true);
+        ObjectHandler::UpdateObjectCameraScale(object, camera_position, true);
+        ObjectHandler::Render(object, true);
     }
 }
 
@@ -109,7 +113,7 @@ std::shared_ptr<Object> ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame:
 
     std::shared_ptr<Object> closest_object = nullptr;
 
-    glm::vec3 closest_face_hit_normal;
+    glm::vec3 closest_face_hit_normal = glm::vec3(-1000.0f);
 
     for (auto object : objects) {
         float distance;

@@ -4,13 +4,22 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) : name(p_name), position(p_position), type(p_type), size(p_size), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
+Object::Object() {
+    ;
+}
+
+Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) : name(p_name), position(p_position), type(p_type), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
+    size = glm::vec3(p_size);
+    
     Object::Load(p_obj_path, object_data_str);
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
 
     Object::UpdatePosition(glm::vec3(0.0f));
+
+    true_position = position;
+    true_model_matrix = model_matrix;
 }
 
 //=============================
@@ -36,10 +45,31 @@ void Object::Render() {
     // render all triangles
     for (auto [shader_program, triangles_i] : triangles) {
         glUseProgram(shader_program);
+
+        GLuint model_location = glGetUniformLocation(shader_program, "model_matrix");
+
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
+
         for (auto triangle : triangles_i) {
             triangle.Render();
         }
     }
+}
+
+void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) {
+    name = p_name;
+    position = p_position;
+    type = p_type;
+    size = glm::vec3(p_size);
+    shader_program = p_shader_program;
+    aspect_ratio = p_aspect_ratio;
+
+    Object::Load(p_obj_path, object_data_str);
+
+    // adjust for aspect_ratio (vertices are updated in Object::_Read())
+    size.y *= aspect_ratio;
+
+    Object::UpdatePosition(glm::vec3(0.0f));
 }
 
 std::string Object::GetData() {
@@ -118,6 +148,17 @@ bool Object::IsVisible(glm::mat4 view_projection_matrix) {
     return false;
 }
 
+void Object::Translate(glm::vec3 translation) {
+    position += translation;
+    model_matrix = glm::translate(model_matrix, translation);
+    UpdatePosition(glm::vec3(0.0f));
+}
+
+void Object::ResetTranslation() {
+    position = true_position;
+    model_matrix = true_model_matrix;
+}
+
 //=============================
 // RAY FUNCTIONS
 //=============================
@@ -175,6 +216,8 @@ bool Object::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3
     // ray direction from ray origin to object position (center)
     glm::vec3 ray_to_pos = position - ray.origin;
 
+    face_hit_normal_out = glm::vec3(-1000.0f);
+
     // for each axes
     for (int i = 0; i < 3; i++) {
         // the difference in angle between the ray direction and axes direction
@@ -196,7 +239,6 @@ bool Object::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3
                 // if entering negative, -axes[i], otherwise axes[i]
                 face_hit_normal_out = entering_negative ? -axes[i] : axes[i];
             }
-
             tmax = glm::min(tmax, t2);
             
             // if tmin > tmax, there is no overlap between the camera ray and object

@@ -13,10 +13,14 @@
 #include <SDL3/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "TotalFrame.h"
 #include "Util.h"
 #include "Triangle.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
 
 /*
 ABOUT:
@@ -28,6 +32,7 @@ Use ObjectHandler to control objects for ease of use and safety.
 
 class Object {
     public:
+        Object();
         Object(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
         void FreeAll();
 
@@ -35,11 +40,14 @@ class Object {
         std::string name = "";
         TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::BASIC_OBJ;
         GLuint shader_program = 0;
+        glm::vec3 size = glm::vec3(0.1f);
 
         //////// BASIC FUNCTIONS
         void Verify();
         void Load(std::string obj_path, std::string object_data_str = "");
         void Render();
+
+        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
 
         std::string GetData();
 
@@ -47,6 +55,9 @@ class Object {
         void UpdatePosition(glm::vec3 camera_position);
         glm::vec3 GetPosition();
         bool IsVisible(glm::mat4 view_projection_matrix);
+
+        void Translate(glm::vec3 translation);
+        void ResetTranslation();
 
         //////// RAY FUNCTIONS
         bool RayCollides(TotalFrame::Ray ray);
@@ -56,6 +67,7 @@ class Object {
     private:
         //////// BASIC ATTRIBUTES
         std::unordered_map<GLuint, std::vector<Triangle>> triangles = {};
+        glm::vec3 true_position = glm::vec3(0.0f);
         
         /////// EXTERNAL ATTRIBUTES
         float aspect_ratio = 0.0f;
@@ -65,8 +77,8 @@ class Object {
         std::vector<glm::vec3> corners = {};
 
         //////// TRANSFORMATION ATTRIBUTES
-        glm::vec3 size = glm::vec3(0.1f);
         glm::mat4 model_matrix = glm::mat4(1.0f);
+        glm::mat4 true_model_matrix = glm::mat4(1.0f);
 
         //////// OBB ATTRIBUTES
         glm::vec3 half_size = glm::vec3(0.0f);

@@ -33,6 +33,7 @@ class ObjectHandler {
 
         //////// BASIC
         void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
+        void UpdateAndRender(Object object, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
 
         std::string GetData();
 

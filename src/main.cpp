@@ -41,6 +41,7 @@ ZANE WEBSTER
 #include "Object.h"
 #include "ObjectHandler.h"
 #include "Creator.h"
+#include "BlockCursor.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -84,9 +85,10 @@ int main(int argc, char* argv[]) {
     ////////// GAME VARIABLES
 
     ////////// GAME OBJECTS
-    GLuint cube_sp = shader_handler.CreateShaderProgram("res/cube_shader");
-    
-    //object_handler.Create("cube", {0.0f, 0.0f, 0.0f}, TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp);
+    GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
+    GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
+
+    BlockCursor block_cursor("block cursor", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/block_cursor.tfobj", block_cursor_sp, window_handler.aspect_ratio);
 
     ////////// TEXT
 
@@ -140,14 +142,16 @@ int main(int argc, char* argv[]) {
                         }
                         break;
                     case SDL_EVENT_MOUSE_MOTION:
-                        //// FACE TESTING
                         SDL_GetMouseState(&mouse_x, &mouse_y);
-                        glm::vec3 face_hit_direction;
-                        mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_direction);
-                        if (mouse_object != nullptr) {
-                            Util::Debug(mouse_object->name);
-                            Util::Debug(glm::to_string(face_hit_direction));
+
+                        if (block_cursor.visible) {
+                            window_handler.NeedRender();
                         }
+                        
+                        //// FACE TESTING
+                        glm::vec3 face_hit_pos;
+                        mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                        block_cursor.PlaceOnFace(face_hit_pos);
 
                         if (event.motion.state && SDL_BUTTON_MMASK) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -214,9 +218,15 @@ int main(int argc, char* argv[]) {
 
             if (window_handler.StartRender()) {
                 window_handler.Clear();
-                
+
                 camera.UpdateShaderPrograms(object_handler.GetShaderProgramsUpdates());
                 object_handler.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position);
+
+                // update block_cursor seperate so it doesn't get saved to tfobj file
+                if (block_cursor.visible) {
+                    camera.UpdateShaderPrograms({block_cursor_sp});
+                    object_handler.UpdateAndRender(block_cursor.object, camera.GetViewProjectionMatrix(), camera.position);
+                }
 
                 window_handler.Update();
                 window_handler.EndRender();

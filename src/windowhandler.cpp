@@ -26,7 +26,10 @@ WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::st
     if (glewInit() != GLEW_OK) Util::ThrowError("GLEW NOT INITIALIZED PROPERLY", "windowhandler");
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glClearColor(color.r, color.g, color.b, color.a);
     glViewport(0, 0, width, height);
 
