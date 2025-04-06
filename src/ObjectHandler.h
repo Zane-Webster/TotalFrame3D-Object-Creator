@@ -56,7 +56,7 @@ class ObjectHandler {
 
         //////// RAYS
         std::shared_ptr<Object> GetRayCollidingObject(TotalFrame::Ray ray);
-        std::shared_ptr<Object> GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
+        Object GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
         std::vector<std::shared_ptr<Object>> GetRayCollidingObjects(TotalFrame::Ray ray);
 
         //////// RENDERING

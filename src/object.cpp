@@ -10,6 +10,7 @@ Object::Object() {
 
 Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) : name(p_name), position(p_position), type(p_type), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
     size = glm::vec3(p_size);
+    true_size = glm::vec3(p_size);
     
     Object::Load(p_obj_path, object_data_str);
 
@@ -51,6 +52,7 @@ void Object::Render() {
         glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
 
         for (auto triangle : triangles_i) {
+            triangle.Verify();
             triangle.Render();
         }
     }
@@ -70,17 +72,33 @@ void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT
     size.y *= aspect_ratio;
 
     Object::UpdatePosition(glm::vec3(0.0f));
+    
+    true_position = position;
+    true_model_matrix = model_matrix;
 }
 
 std::string Object::GetData() {
     std::string temp_data = "";
     for (auto [sp, triangles_i] : triangles) {
         for (auto triangle : triangles_i) {
-            temp_data += triangle.GetData(aspect_ratio);
+            temp_data += triangle.GetData();
             temp_data += '\n';
         }
     }
     return temp_data;
+}
+
+//=============================
+// COLOR FUNCTIONS
+//=============================
+
+void Object::SetColor(glm::vec3 color) {
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            triangle.SetColor(color);
+            triangle.Build();
+        }
+    }
 }
 
 //=============================
@@ -98,10 +116,8 @@ void Object::UpdatePosition(glm::vec3 camera_position) {
     glm::vec3 scale_transformation = glm::vec3(glm::length(glm::vec3(model_matrix[0])), 
                                     glm::length(glm::vec3(model_matrix[1])), 
                                     glm::length(glm::vec3(model_matrix[2])));
-
     // combine for final scale amount
     glm::vec3 final_scale = scale_transformation * scale_factor;
-
     // rotate and scale the axes for obb
     glm::mat3 rotation_matrix = glm::mat3(model_matrix);
     for (int i = 0; i < 3; i++) {
@@ -131,6 +147,32 @@ glm::vec3 Object::GetPosition() {
     return glm::vec3(model_matrix[3][0], model_matrix[3][1], model_matrix[3][2]);
 }
 
+glm::vec3 Object::GetTTPosition() {
+    return glm::vec3(translated_true_model_matrix[3][0], translated_true_model_matrix[3][1], translated_true_model_matrix[3][2]);
+}
+
+void Object::SetPosition(glm::vec3 p_position) {
+    translated_true_model_matrix[3][0] = p_position[0];
+    translated_true_model_matrix[3][1] = p_position[1];
+    translated_true_model_matrix[3][2] = p_position[2];
+    translated_true_position = p_position;
+
+    glm::vec3 stretched_position = p_position;
+    stretched_position[1] *= aspect_ratio;
+
+    model_matrix[3][0] = stretched_position[0];
+    model_matrix[3][1] = stretched_position[1];
+    model_matrix[3][2] = stretched_position[2];
+    position = stretched_position;
+
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            triangle.SetPosition(translated_true_position, aspect_ratio);
+            triangle.Build();
+        }
+    }
+}
+
 bool Object::IsVisible(glm::mat4 view_projection_matrix) {
     for (auto corner : corners) {
         glm::vec4 clip_space_position = view_projection_matrix * glm::vec4(corner, 1.0f);
@@ -149,12 +191,14 @@ bool Object::IsVisible(glm::mat4 view_projection_matrix) {
 }
 
 void Object::Translate(glm::vec3 translation) {
-    position += translation;
-    model_matrix = glm::translate(model_matrix, translation);
-    UpdatePosition(glm::vec3(0.0f));
+    glm::vec3 translated_position = translated_true_position + translation;
+    Object::SetPosition(translated_position);
 }
 
 void Object::ResetTranslation() {
+    translated_true_position = true_position;
+    translated_true_model_matrix = true_model_matrix;
+
     position = true_position;
     model_matrix = true_model_matrix;
 }
@@ -280,6 +324,7 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
     std::vector<Triangle> temp_triangles = {};
     std::vector<std::string> temp_vertices_str = {};
     std::vector<GLfloat> temp_vertices = {};
+    std::vector<GLfloat> temp_true_vertices = {};
     std::string temp_number_str = "";
 
     // read through the entire object data string and split it into triangle data lines
@@ -295,11 +340,13 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
     // read through each set of vertices (triangle data), add to temp_vertices, create a triangle from the temp_vertices, and build the triangle
     for (auto line : temp_vertices_str) {
         temp_vertices = {};
+        temp_true_vertices = {};
         temp_number_str = {};
 
         for (auto letter : line) {
             if (letter == ' ') {
                 temp_vertices.push_back(std::stof(temp_number_str));
+                temp_true_vertices.push_back(std::stof(temp_number_str));
 
                 // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
                 if (temp_vertices.size() == 2 || temp_vertices.size() == 8 || temp_vertices.size() == 14) temp_vertices.back() *= aspect_ratio;
@@ -311,10 +358,9 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
         }
 
         temp_vertices.push_back(std::stof(temp_number_str));
+        temp_true_vertices.push_back(std::stof(temp_number_str));
 
-        temp_triangles.push_back(Triangle(temp_vertices));
-    
-        temp_triangles.back().Build();
+        temp_triangles.push_back(Triangle(temp_vertices, temp_true_vertices));
     }
 
     return temp_triangles;

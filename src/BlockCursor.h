@@ -16,6 +16,9 @@
 #include "Util.h"
 #include "Object.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
+
 class BlockCursor {
     public:
         BlockCursor(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
@@ -25,7 +28,9 @@ class BlockCursor {
 
         glm::vec3 current_translation = glm::vec3(0.0f);
 
-        void PlaceOnFace(glm::vec3 face_pos);
+        void PlaceOnFace(glm::vec3 object_position, glm::vec3 face_pos);
+
+        glm::vec3 NextObjectPosition();
 
     private:
 

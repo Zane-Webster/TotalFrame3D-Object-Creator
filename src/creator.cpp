@@ -3,6 +3,19 @@ Creator::Creator(std::string p_objects_path) : objects_path(p_objects_path) {
 
 }
 
+void Creator::SetCubeDefault(Object object) {
+    cube_default = object;
+    adjusted_cube_default = object;
+}
+
+Object Creator::GetCubeDefault() {
+    return adjusted_cube_default;
+}
+
+void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
+    adjusted_cube_default.SetPosition(position);
+}
+
 void Creator::Save(std::string object_data) {
     // if untitled (not yet saved), create a new object. if the user exits, cancel save and return
     if (*object_name == "untitled") if (!Creator::NewObject()) return;
@@ -63,6 +76,8 @@ void Creator::ChooseColor() {
 
     // alpha channel
     color[3] = 1.0f;
+
+    adjusted_cube_default.SetColor(color);
 }
 
 std::shared_ptr<std::string> Creator::GetName() {

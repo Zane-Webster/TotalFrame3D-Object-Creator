@@ -24,6 +24,10 @@ class Creator {
         glm::vec4 color = glm::vec4(1.0f);
         bool saved = false;
 
+        void SetCubeDefault(Object object);
+        Object GetCubeDefault();
+        void UpdateCubeDefaultPosition(glm::vec3 position);
+
         // save object data
         void Save(std::string object_data);
         bool NewObject();
@@ -40,7 +44,11 @@ class Creator {
     private:
         std::string objects_path = "";
         std::string object_path = "";
-        std::shared_ptr<std::string> object_name = std::make_shared<std::string>("untitled"); 
+        std::shared_ptr<std::string> object_name = std::make_shared<std::string>("untitled");
+
+        // the cube that will be placed by default
+        Object cube_default;
+        Object adjusted_cube_default;
 
         const char* filter_patterns[1] = {"*.tfobj"};
 

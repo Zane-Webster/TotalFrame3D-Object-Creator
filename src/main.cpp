@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     std::string app_state = "game";
     //// INPUT
     float mouse_x, mouse_y; //SDL_GetMouseState(&mouse_x, &mouse_y);
-    std::shared_ptr<Object> mouse_object = nullptr;
+    Object mouse_object;
     std::shared_ptr<double> delta_time = window_handler.DeltaTime();
     TotalFrame::KEYSET keyset = TotalFrame::KEYSET::WASD;
     TF_MOVEMENT_KEYSET movement_keys = TotalFrame::MOVEMENT_KEYS[keyset];
@@ -87,6 +87,10 @@ int main(int argc, char* argv[]) {
     ////////// GAME OBJECTS
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
     GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
+
+    creator.SetCubeDefault(Object("cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp, window_handler.aspect_ratio));
+
+    object_handler.Create("starting cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/starting_cube.tfobj", cube_sp);
 
     BlockCursor block_cursor("block cursor", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/block_cursor.tfobj", block_cursor_sp, window_handler.aspect_ratio);
 
@@ -122,17 +126,36 @@ int main(int argc, char* argv[]) {
                     case SDL_EVENT_QUIT: 
                         app_running = false;
                         break;
-
-                    ////////
-                    //
-                    // MOUSE MOVEMENT
-                    //
-                    ////////
                     
                     case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                        ////////
+                        //
+                        // CUBE PLACEMENT
+                        //
+                        ////////
+
                         if (event.button.button == SDL_BUTTON_LEFT) {
-                            creator.ChooseColor();
+                            //// CHECK IF HITTING OBJECT FACE
+                            glm::vec3 face_hit_pos;
+                            //// GET FIRST OBJECT HIT
+                            mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                            block_cursor.PlaceOnFace(mouse_object.GetTTPosition(), face_hit_pos);
+
+                        
+                            if (block_cursor.visible) {
+                                creator.UpdateCubeDefaultPosition(block_cursor.NextObjectPosition());
+                                object_handler.Add(Object(creator.GetCubeDefault().name, creator.GetCubeDefault().GetTTPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, window_handler.aspect_ratio, creator.GetCubeDefault().GetData()));
+                                window_handler.NeedRender();
+                            }
                         }
+
+
+                        ////////
+                        //
+                        // MOUSE MOVEMENT
+                        //
+                        ////////
+
                         if (event.button.button == SDL_BUTTON_MIDDLE) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
                             camera.StartMouseMove(mouse_x, mouse_y);
@@ -151,7 +174,7 @@ int main(int argc, char* argv[]) {
                         //// FACE TESTING
                         glm::vec3 face_hit_pos;
                         mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
-                        block_cursor.PlaceOnFace(face_hit_pos);
+                        block_cursor.PlaceOnFace(mouse_object.GetTTPosition(), face_hit_pos);
 
                         if (event.motion.state && SDL_BUTTON_MMASK) {
                             SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -179,11 +202,15 @@ int main(int argc, char* argv[]) {
                             if (event.key.key == SDLK_O) {
                                 std::string loaded_object_path = creator.Load();
                                 if (loaded_object_path != "\n") {
-                                    object_handler.ClearAndCreate("cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, loaded_object_path, cube_sp);
+                                    object_handler.ClearAndCreate("new object", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, loaded_object_path, cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
                             }
+                        }
+
+                        if (event.key.key == SDLK_TAB) {
+                            creator.ChooseColor();
                         }
 
                         ////////

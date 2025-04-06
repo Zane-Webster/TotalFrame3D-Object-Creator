@@ -107,11 +107,11 @@ std::shared_ptr<Object> ObjectHandler::GetRayCollidingObject(TotalFrame::Ray ray
     return closest_object;
 }
 
-std::shared_ptr<Object> ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out) {
+Object ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out) {
     // set closest_object to the farthest possible
     float closest_distance = std::numeric_limits<float>::max();
 
-    std::shared_ptr<Object> closest_object = nullptr;
+    Object closest_object;
 
     glm::vec3 closest_face_hit_normal = glm::vec3(-1000.0f);
 
@@ -123,11 +123,12 @@ std::shared_ptr<Object> ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame:
             // if the object is closer than the others
             if (distance < closest_distance) {
                 closest_distance = distance;
-                closest_object = std::make_shared<Object>(object);
+                closest_object = object;
                 closest_face_hit_normal = face_hit_normal;
             }
         }
     }
+    
     face_hit_normal_out = closest_face_hit_normal;
 
     return closest_object;
@@ -151,7 +152,9 @@ std::vector<std::shared_ptr<Object>> ObjectHandler::GetRayCollidingObjects(Total
 
 void ObjectHandler::Render(Object object, bool is_visible) {
     // if visible, render
-    if (is_visible) object.Render();
+    if (is_visible){
+        object.Render();
+    }
 }
 
 //=============================
