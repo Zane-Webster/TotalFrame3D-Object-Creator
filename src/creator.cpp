@@ -12,6 +12,10 @@ Object Creator::GetCubeDefault() {
     return adjusted_cube_default;
 }
 
+glm::vec3 Creator::GetCubeDefaultPosition() {
+    return adjusted_cube_default.GetTTPosition();
+}
+
 void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
     adjusted_cube_default.SetPosition(position);
 }

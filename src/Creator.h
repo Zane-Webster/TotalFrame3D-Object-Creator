@@ -17,6 +17,9 @@
 #include "Util.h"
 #include "ObjectHandler.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
+
 class Creator {
     public:
         Creator(std::string objects_path);
@@ -26,6 +29,7 @@ class Creator {
 
         void SetCubeDefault(Object object);
         Object GetCubeDefault();
+        glm::vec3 GetCubeDefaultPosition();
         void UpdateCubeDefaultPosition(glm::vec3 position);
 
         // save object data

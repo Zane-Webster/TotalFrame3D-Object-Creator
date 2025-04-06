@@ -37,13 +37,15 @@ std::string ObjectHandler::GetData() {
 // CREATION FUNCTIONS
 //=============================
 
-void ObjectHandler::Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program) {
-    objects.push_back(Object(name, position, type, size, obj_path, shader_program, aspect_ratio));
+void ObjectHandler::Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, std::string object_data_str) {
+    Object temp_object(name, position, type, size, obj_path, shader_program, aspect_ratio, object_data_str);
+    objects.push_back(temp_object);
     shader_program_groups[objects.back().shader_program].push_back(objects.back());
     shader_programs_need_update[objects.back().shader_program] = true;
 }
 
 void ObjectHandler::Add(Object object) {
+    Util::Debug(glm::to_string(object.GetTTPosition()));
     objects.push_back(object);
     shader_program_groups[object.shader_program].push_back(object);
     shader_programs_need_update[object.shader_program] = true;

@@ -16,6 +16,9 @@
 #include "Util.h"
 #include "Object.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
+
 /*
 ABOUT:
 Handles the creation, updating and rendering of Objects.
@@ -31,6 +34,9 @@ class ObjectHandler {
         ObjectHandler(float aspect_ratio);
         void FreeAll();
 
+        //////// BASIC ATTRIBUTES
+        std::vector<Object> objects;
+
         //////// BASIC
         void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
         void UpdateAndRender(Object object, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
@@ -39,7 +45,7 @@ class ObjectHandler {
 
         //////// OBJECT CREATION
         // creates an object
-        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
+        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
         // adds a pre-created object
         void Add(Object object);
 
@@ -65,7 +71,7 @@ class ObjectHandler {
 
     private:
         //////// BASIC ATTRIBUTES
-        std::vector<Object> objects;
+        //std::vector<Object> objects;
         // groups objects by which shader program they use
         std::unordered_map<GLuint, std::vector<Object>> shader_program_groups = {};
         // says which shader_programs need to be updated

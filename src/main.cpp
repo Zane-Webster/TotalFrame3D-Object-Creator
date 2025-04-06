@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     WindowHandler window_handler(1280, 720, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", 60.0f);
     AudioHandler audio_handler;
     ShaderHandler shader_handler(window_handler.context);
-    CameraHandler camera(glm::vec3(0.0f, 0.0f, 6.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
+    CameraHandler camera(glm::vec3(0.0f, 0.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     ObjectHandler object_handler(window_handler.aspect_ratio);
     Creator creator(std::filesystem::current_path().string());
 
@@ -140,11 +140,10 @@ int main(int argc, char* argv[]) {
                             //// GET FIRST OBJECT HIT
                             mouse_object = object_handler.GetRayCollidingObjectWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
                             block_cursor.PlaceOnFace(mouse_object.GetTTPosition(), face_hit_pos);
-
                         
                             if (block_cursor.visible) {
                                 creator.UpdateCubeDefaultPosition(block_cursor.NextObjectPosition());
-                                object_handler.Add(Object(creator.GetCubeDefault().name, creator.GetCubeDefault().GetTTPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, window_handler.aspect_ratio, creator.GetCubeDefault().GetData()));
+                                object_handler.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetData());
                                 window_handler.NeedRender();
                             }
                         }
