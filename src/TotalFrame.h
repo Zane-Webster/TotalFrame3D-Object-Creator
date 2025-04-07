@@ -48,8 +48,9 @@ class TotalFrame {
 
         static constexpr TF_MOVEMENT_KEYSET WASD_MOVEMENT_KEYS = {SDLK_W, SDLK_A, SDLK_S, SDLK_D, SDLK_SPACE, SDLK_LCTRL};
         static constexpr TF_MOVEMENT_KEYSET ARROW_MOVEMENT_KEYS = {SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT, SDLK_SPACE, SDLK_LCTRL};
-
         static constexpr std::array<TF_MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
+
+        static constexpr float TRIANGLE_SIZE = 0.1f;
 
         struct MoveQueue {
             MoveQueue(KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {

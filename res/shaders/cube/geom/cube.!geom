@@ -1,0 +1,33 @@
+#version 330 core
+
+layout(triangles) in; // Input primitive type is a triangle
+layout(triangle_strip, max_vertices = 6) out; // Output type is triangle_strip for the fill
+
+in vec3 vertex_color[]; // Color passed from the vertex shader
+
+out vec3 edge_color; // Color for the edges (set to black)
+out vec3 fill_color; // Color for the fill (from vertex shader)
+
+void main() {
+    // Emit the filled triangle (this will be processed by the fragment shader)
+    for (int i = 0; i < 3; ++i) {
+        gl_Position = gl_in[i].gl_Position;
+        fill_color = vertex_color[i]; // Pass the color to the fragment shader
+        EmitVertex();
+    }
+    EndPrimitive(); // Finish emitting the filled triangle
+
+    // Emit the edges of the triangle (black outline)
+    edge_color = vec3(0.0, 0.0, 0.0); // Black color for the edges
+    for (int i = 0; i < 3; ++i) {
+        // Emit first vertex of the edge
+        gl_Position = gl_in[i].gl_Position;
+        EmitVertex();
+
+        // Emit second vertex of the edge
+        gl_Position = gl_in[(i + 1) % 3].gl_Position; // Next vertex in the triangle
+        EmitVertex();
+
+        EndPrimitive(); // Finish emitting the current edge
+    }
+}

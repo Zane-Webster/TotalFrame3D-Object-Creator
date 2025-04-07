@@ -33,6 +33,14 @@ std::string ObjectHandler::GetData() {
     return temp_data;
 }
 
+std::string ObjectHandler::GetTrueData() {
+    std::string temp_data = "";
+    for (auto object : objects) {
+        temp_data += object.GetTrueData();
+    }
+    return temp_data;
+}
+
 //=============================
 // CREATION FUNCTIONS
 //=============================
@@ -45,7 +53,6 @@ void ObjectHandler::Create(std::string name, glm::vec3 position, TotalFrame::OBJ
 }
 
 void ObjectHandler::Add(Object object) {
-    Util::Debug(glm::to_string(object.GetTTPosition()));
     objects.push_back(object);
     shader_program_groups[object.shader_program].push_back(object);
     shader_programs_need_update[object.shader_program] = true;
@@ -127,6 +134,7 @@ Object ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::ve
                 closest_distance = distance;
                 closest_object = object;
                 closest_face_hit_normal = face_hit_normal;
+                //Util::Debug(glm::to_string(closest_object.GetTTPosition()));
             }
         }
     }

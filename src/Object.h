@@ -41,8 +41,8 @@ class Object {
         std::string name = "";
         TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::BASIC_OBJ;
         GLuint shader_program = 0;
-        glm::vec3 size = glm::vec3(0.1f);
-        glm::vec3 true_size = glm::vec3(0.1f);
+        glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
+        glm::vec3 true_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
 
         /////// EXTERNAL ATTRIBUTES
         float aspect_ratio = 0.0f;
@@ -53,9 +53,14 @@ class Object {
         void Render();
         void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
         std::string GetData();
+        std::string GetTrueData();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
+
+        //////// LINE FUNCTIONS
+        void BuildLines();
+        void RenderLines();
 
         //////// POSITIONAL FUNCTIONS
         void UpdatePosition(glm::vec3 camera_position);
@@ -84,6 +89,11 @@ class Object {
         // the true position, translated, but not stretched by aspect ratio
         glm::vec3 translated_true_position = glm::vec3(0.0f);
         std::vector<glm::vec3> corners = {};
+
+        //////// LINE ATTRIBUTES
+        std::vector<glm::vec3> lines_vertices = {};
+        GLuint lines_vertex_array = 0;
+        GLuint lines_vertex_buffer = 0;
 
         //////// TRANSFORMATION ATTRIBUTES
         glm::mat4 model_matrix = glm::mat4(1.0f);

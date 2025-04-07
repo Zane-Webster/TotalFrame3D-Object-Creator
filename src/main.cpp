@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
     GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
 
-    creator.SetCubeDefault(Object("cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/cube.tfobj", cube_sp, window_handler.aspect_ratio));
+    creator.SetCubeDefault(Object("cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj", cube_sp, window_handler.aspect_ratio));
 
-    object_handler.Create("starting cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/starting_cube.tfobj", cube_sp);
+    object_handler.Create("starting cube", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj", cube_sp);
 
-    BlockCursor block_cursor("block cursor", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, "res/tfobj/block_cursor.tfobj", block_cursor_sp, window_handler.aspect_ratio);
+    BlockCursor block_cursor("block cursor", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj", block_cursor_sp, window_handler.aspect_ratio);
 
     ////////// TEXT
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
                 //// RECTS
 
                 //// AUDIO
-
+                
             }
 
             ////////// EVENTS
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
                         
                             if (block_cursor.visible) {
                                 creator.UpdateCubeDefaultPosition(block_cursor.NextObjectPosition());
-                                object_handler.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetData());
+                                object_handler.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetTrueData());
                                 window_handler.NeedRender();
                             }
                         }
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
                             if (event.key.key == SDLK_O) {
                                 std::string loaded_object_path = creator.Load();
                                 if (loaded_object_path != "\n") {
-                                    object_handler.ClearAndCreate("new object", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, 0.1f, loaded_object_path, cube_sp);
+                                    object_handler.ClearAndCreate("new object", glm::vec3(0.0f), TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }

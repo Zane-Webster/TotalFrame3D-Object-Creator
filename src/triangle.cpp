@@ -19,10 +19,13 @@ bool Triangle::Verify() {
 }
 
 void Triangle::LoadVertices(std::vector<GLfloat> p_vertices, std::vector<GLfloat> p_true_vertices) {
+    vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
+    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
+    translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
     if (p_vertices.size() == 18) {
         std::copy(p_vertices.begin(), p_vertices.end(), vertices->begin());
         std::copy(p_true_vertices.begin(), p_true_vertices.end(), true_vertices->begin());
-        *translated_true_vertices = *true_vertices;
+        std::copy(p_true_vertices.begin(), p_true_vertices.end(), translated_true_vertices->begin());
     }
 }
 
@@ -49,19 +52,34 @@ void Triangle::Build() {
 
 void Triangle::Render() {
     glBindVertexArray(vertex_array);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 3);  // Draw the triangle (filled)
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Triangle::RenderOutline() {
+    glBindVertexArray(vertex_array);
+    glDrawArrays(GL_LINE_LOOP, 0, 3);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 std::string Triangle::GetData() {
     std::string temp_data = "";
-    // undo aspect ratio stretching
-    (*vertices)[1] = (*translated_true_vertices)[1];
-    (*vertices)[7] = (*translated_true_vertices)[7];
-    (*vertices)[13] = (*translated_true_vertices)[13];
 
-    for (auto vertice : (*vertices)) {
+    for (auto vertice : (*translated_true_vertices)) {
+        temp_data += std::to_string(vertice);
+        temp_data += ' ';
+    }
+    //get rid of the last space
+    temp_data.pop_back();
+    return temp_data;
+}
+
+std::string Triangle::GetTrueData() {
+    std::string temp_data = "";
+
+    for (auto vertice : (*true_vertices)) {
         temp_data += std::to_string(vertice);
         temp_data += ' ';
     }
@@ -75,32 +93,20 @@ std::string Triangle::GetData() {
 //=============================
 
 void Triangle::SetPosition(glm::vec3 position, float aspect_ratio) {
-    (*translated_true_vertices)[0] = position[0] + (*true_vertices)[0];
-    (*translated_true_vertices)[1] = position[1] + (*true_vertices)[1];
-    (*translated_true_vertices)[2] = position[2] + (*true_vertices)[2];
+    int stride = 6;
+    for (int i = 0; i < 3; ++i) {
+        int index = i * stride;
+        (*translated_true_vertices)[index + 0] = position[0] + (*true_vertices)[index + 0];
+        (*translated_true_vertices)[index + 1] = position[1] + (*true_vertices)[index + 1];
+        (*translated_true_vertices)[index + 2] = position[2] + (*true_vertices)[index + 2];
 
-    (*translated_true_vertices)[6] = position[0] + (*true_vertices)[6];
-    (*translated_true_vertices)[7] = position[1] + (*true_vertices)[7];
-    (*translated_true_vertices)[8] = position[2] + (*true_vertices)[8];
-
-    (*translated_true_vertices)[12] = position[0] + (*true_vertices)[12];
-    (*translated_true_vertices)[13] = position[1] + (*true_vertices)[13];
-    (*translated_true_vertices)[14] = position[2] + (*true_vertices)[14];
-
-    glm::vec3 stretched_position = position;
-    stretched_position[1] *= aspect_ratio;
-
-    (*vertices)[0] = stretched_position[0] + (*true_vertices)[0];
-    (*vertices)[1] = stretched_position[1] + (*true_vertices)[1];
-    (*vertices)[2] = stretched_position[2] + (*true_vertices)[2];
-
-    (*vertices)[6] = stretched_position[0] + (*true_vertices)[6];
-    (*vertices)[7] = stretched_position[1] + (*true_vertices)[7];
-    (*vertices)[8] = stretched_position[2] + (*true_vertices)[8];
-
-    (*vertices)[12] = stretched_position[0] + (*true_vertices)[12];
-    (*vertices)[13] = stretched_position[1] + (*true_vertices)[13];
-    (*vertices)[14] = stretched_position[2] + (*true_vertices)[14];
+        glm::vec3 stretched_position = position;
+        stretched_position[1] *= aspect_ratio;
+        (*vertices)[index + 0] = stretched_position[0] + (*true_vertices)[index + 0];
+        (*vertices)[index + 1] = stretched_position[1] + (*true_vertices)[index + 1];
+        (*vertices)[index + 2] = stretched_position[2] + (*true_vertices)[index + 2];
+    }
+    Triangle::Build();
 }
 
 //=============================
@@ -108,17 +114,23 @@ void Triangle::SetPosition(glm::vec3 position, float aspect_ratio) {
 //=============================
 
 void Triangle::SetColor(glm::vec3 color) {
-    (*vertices)[3] = color[0];
-    (*vertices)[4] = color[1];
-    (*vertices)[5] = color[2];
-    
-    (*vertices)[9] = color[0];
-    (*vertices)[10] = color[1];
-    (*vertices)[11] = color[2];
+    int stride = 6;
+    for (int i = 0; i < 3; ++i) {
+        int index = i * stride + 3;
+        (*translated_true_vertices)[index + 0] = color[0];
+        (*translated_true_vertices)[index + 1] = color[1];
+        (*translated_true_vertices)[index + 2] = color[2];
 
-    (*vertices)[15] = color[0];
-    (*vertices)[16] = color[1];
-    (*vertices)[17] = color[2];
+        (*true_vertices)[index + 0] = color[0];
+        (*true_vertices)[index + 1] = color[1];
+        (*true_vertices)[index + 2] = color[2];
+
+        (*vertices)[index + 0] = color[0];
+        (*vertices)[index + 1] = color[1];
+        (*vertices)[index + 2] = color[2];
+    }
+
+    Triangle::Build();
 }
 
 //=============================

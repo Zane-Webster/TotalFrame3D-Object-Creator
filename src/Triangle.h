@@ -15,6 +15,9 @@
 #include "TotalFrame.h"
 #include "Util.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/ext.hpp"
+
 /*
 ABOUT:
 A basic colored triangle. Contains vertices, vertex array and vertex buffer.
@@ -33,7 +36,9 @@ class Triangle {
         void LoadVertices(std::vector<GLfloat> vertices, std::vector<GLfloat> true_vertices);
         void Build();
         void Render();
+        void RenderOutline();
         std::string GetData();
+        std::string GetTrueData();
 
         //////// MOVEMENT FUNCTIONS
         void SetPosition(glm::vec3 position, float aspect_ratio);
@@ -47,7 +52,6 @@ class Triangle {
         std::shared_ptr<TF_TRIANGLE_VERTICES> translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
         GLuint vertex_array = 0;
         GLuint vertex_buffer = 0;
-
 };
 
 #endif // SRC_TRIANGLE_H_

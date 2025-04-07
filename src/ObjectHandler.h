@@ -34,14 +34,12 @@ class ObjectHandler {
         ObjectHandler(float aspect_ratio);
         void FreeAll();
 
-        //////// BASIC ATTRIBUTES
-        std::vector<Object> objects;
-
         //////// BASIC
         void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
         void UpdateAndRender(Object object, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
 
         std::string GetData();
+        std::string GetTrueData();
 
         //////// OBJECT CREATION
         // creates an object
@@ -71,7 +69,7 @@ class ObjectHandler {
 
     private:
         //////// BASIC ATTRIBUTES
-        //std::vector<Object> objects;
+        std::vector<Object> objects;
         // groups objects by which shader program they use
         std::unordered_map<GLuint, std::vector<Object>> shader_program_groups = {};
         // says which shader_programs need to be updated

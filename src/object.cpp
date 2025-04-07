@@ -8,19 +8,8 @@ Object::Object() {
     ;
 }
 
-Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) : name(p_name), position(p_position), type(p_type), shader_program(p_shader_program), aspect_ratio(p_aspect_ratio) {
-    size = glm::vec3(p_size);
-    true_size = glm::vec3(p_size);
-    
-    Object::Load(p_obj_path, object_data_str);
-
-    // adjust for aspect_ratio (vertices are updated in Object::_Read())
-    size.y *= aspect_ratio;
-
-    Object::UpdatePosition(glm::vec3(0.0f));
-
-    true_position = position;
-    true_model_matrix = model_matrix;
+Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str){
+    Object::Create(p_name, p_position, p_type, p_size, p_obj_path, p_shader_program, p_aspect_ratio, object_data_str);
 }
 
 //=============================
@@ -43,38 +32,54 @@ void Object::Load(std::string obj_path, std::string object_data_str) {
 }
 
 void Object::Render() {
+    Object::BuildLines();
+
     // render all triangles
     for (auto [shader_program, triangles_i] : triangles) {
         glUseProgram(shader_program);
 
         GLuint model_location = glGetUniformLocation(shader_program, "model_matrix");
-
         glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
 
         for (auto triangle : triangles_i) {
-            triangle.Verify();
             triangle.Render();
         }
     }
+    
+    // render lines
+    glBindVertexArray(lines_vertex_array);
+    glDrawArrays(GL_LINES, 0, lines_vertices.size());
+
+    glBindVertexArray(0);
 }
 
 void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) {
     name = p_name;
-    position = p_position;
     type = p_type;
     size = glm::vec3(p_size);
+    true_size = glm::vec3(p_size);
     shader_program = p_shader_program;
     aspect_ratio = p_aspect_ratio;
 
     Object::Load(p_obj_path, object_data_str);
+    Object::SetPosition(p_position);
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
 
     Object::UpdatePosition(glm::vec3(0.0f));
-    
-    true_position = position;
-    true_model_matrix = model_matrix;
+
+    // Create the VAO and VBO for lines
+    glGenVertexArrays(1, &lines_vertex_array);
+    glGenBuffers(1, &lines_vertex_buffer);
+    glBindVertexArray(lines_vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+    // Initialize lines with a dummy size initially
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * lines_vertices.size(), nullptr, GL_DYNAMIC_DRAW);
+    // Define the position attribute for the lines
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // Unbind VAO
 }
 
 std::string Object::GetData() {
@@ -88,6 +93,18 @@ std::string Object::GetData() {
     return temp_data;
 }
 
+std::string Object::GetTrueData() {
+    std::string temp_data = "";
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            temp_data += triangle.GetTrueData();
+            temp_data += '\n';
+        }
+    }
+    return temp_data;
+}
+
+
 //=============================
 // COLOR FUNCTIONS
 //=============================
@@ -96,10 +113,22 @@ void Object::SetColor(glm::vec3 color) {
     for (auto [sp, triangles_i] : triangles) {
         for (auto triangle : triangles_i) {
             triangle.SetColor(color);
-            triangle.Build();
         }
     }
 }
+
+//=============================
+// LINE FUNCTIONS
+//=============================
+
+void Object::BuildLines() {
+    // Update the VBO with new line data
+    glBindVertexArray(lines_vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * lines_vertices.size(), lines_vertices.data());
+    glBindVertexArray(0); // Unbind VAO
+}
+
 
 //=============================
 // POSITIONAL FUNCTIONS
@@ -113,9 +142,11 @@ void Object::UpdatePosition(glm::vec3 camera_position) {
     float scale_factor = glm::clamp(distance * 0.1f, 0.5f, 5.0f);
 
     // scale transformation based on model matrix scaling
-    glm::vec3 scale_transformation = glm::vec3(glm::length(glm::vec3(model_matrix[0])), 
-                                    glm::length(glm::vec3(model_matrix[1])), 
-                                    glm::length(glm::vec3(model_matrix[2])));
+    glm::vec3 scale_transformation = glm::vec3(
+        glm::length(glm::vec3(model_matrix[0][0], model_matrix[0][1], model_matrix[0][2])), // X scale
+        glm::length(glm::vec3(model_matrix[1][0], model_matrix[1][1], model_matrix[1][2])), // Y scale
+        glm::length(glm::vec3(model_matrix[2][0], model_matrix[2][1], model_matrix[2][2]))  // Z scale
+    );
     // combine for final scale amount
     glm::vec3 final_scale = scale_transformation * scale_factor;
     // rotate and scale the axes for obb
@@ -130,16 +161,43 @@ void Object::UpdatePosition(glm::vec3 camera_position) {
 
     // calculate corners of the object
     corners = {
-        position + glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
-        position + glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
-        position + glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
-        position + glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
-        position + glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
-        position + glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
-        position + glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
-        position + glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
+        true_position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
+        true_position + rotation_matrix * glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
+        true_position + rotation_matrix * glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
+        true_position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
+        true_position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
+        true_position + rotation_matrix * glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
+        true_position + rotation_matrix * glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
+        true_position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
     };
 
+    std::vector<glm::vec3> lines_corners = {
+        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // min x, min y, min z
+        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // max x, min y, min z
+        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // max x, max y, min z
+        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // min x, max y, min z
+        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // min x, min y, max z
+        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // max x, min y, max z
+        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z), // max x, max y, max z
+        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z)  // min x, max y, max z
+    };
+
+    lines_vertices = {
+        lines_corners[0], lines_corners[1], // min x, min y, min z -> max x, min y, min z
+        lines_corners[1], lines_corners[2], // max x, min y, min z -> max x, max y, min z
+        lines_corners[2], lines_corners[3], // max x, max y, min z -> min x, max y, min z
+        lines_corners[3], lines_corners[0], // min x, max y, min z -> min x, min y, min z
+        
+        lines_corners[4], lines_corners[5], // min x, min y, max z -> max x, min y, max z
+        lines_corners[5], lines_corners[6], // max x, min y, max z -> max x, max y, max z
+        lines_corners[6], lines_corners[7], // max x, max y, max z -> min x, max y, max z
+        lines_corners[7], lines_corners[4], // min x, max y, max z -> min x, min y, max z
+        
+        lines_corners[0], lines_corners[4], // min x, min y, min z -> min x, min y, max z
+        lines_corners[1], lines_corners[5], // max x, min y, min z -> max x, min y, max z
+        lines_corners[2], lines_corners[6], // max x, max y, min z -> max x, max y, max z
+        lines_corners[3], lines_corners[7]  // min x, max y, min z -> min x, max y, max z
+    };
 }
 
 
@@ -168,7 +226,6 @@ void Object::SetPosition(glm::vec3 p_position) {
     for (auto [sp, triangles_i] : triangles) {
         for (auto triangle : triangles_i) {
             triangle.SetPosition(translated_true_position, aspect_ratio);
-            triangle.Build();
         }
     }
 }
@@ -377,4 +434,9 @@ void Object::FreeAll() {
             triangle.FreeAll();
         }
     } 
+    // free lines
+    glDeleteVertexArrays(1, &lines_vertex_array);
+    glDeleteBuffers(1, &lines_vertex_buffer);
+    lines_vertex_array = 0;
+    lines_vertex_buffer = 0;
 }
