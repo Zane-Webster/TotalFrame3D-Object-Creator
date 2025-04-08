@@ -23,6 +23,7 @@ void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT
     true_size = glm::vec3(p_size);
     shader_program = p_shader_program;
     aspect_ratio = p_aspect_ratio;
+    object_path = p_obj_path;
 
     glm::vec3 temp_position = glm::vec3(0.0f);
 
@@ -30,7 +31,9 @@ void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT
 
     // if position is being read from file, read from file then set position, otherwise set defined position
     if (p_position == TotalFrame::READ_POS_FROM_FILE) Object::SetPositionNoTriangles(temp_position);
-    else Object::SetPositionNoTriangles(p_position);
+    else {
+        Object::SetPosition(p_position);
+    }
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
@@ -158,18 +161,18 @@ void Object::UpdatePosition(glm::vec3 camera_position) {
 
     // scale the camera size
     camera_scaled_size = size * final_scale;
-    half_size = camera_scaled_size;
+    half_size = camera_scaled_size * 0.5f;
 
     // calculate corners of the object
     corners = {
-        position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
-        position + rotation_matrix * glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
-        position + rotation_matrix * glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
-        position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
-        position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
-        position + rotation_matrix * glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
-        position + rotation_matrix * glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
-        position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
+        position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // min x, min y, min z
+        position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // max x, min y, min z
+        position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // max x, max y, min z
+        position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // min x, max y, min z
+        position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // min x, min y, max z
+        position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // max x, min y, max z
+        position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z), // max x, max y, max z
+        position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z)  // min x, max y, max z
     };
 
     std::vector<glm::vec3> lines_corners = {
@@ -324,7 +327,7 @@ bool Object::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3
     float tmax = std::numeric_limits<float>::max();
 
     // ray direction from ray origin to object position (center)
-    glm::vec3 ray_to_pos = position - ray.origin;
+    glm::vec3 ray_to_pos = Object::GetPosition() - ray.origin;
 
     face_hit_normal_out = glm::vec3(-1000.0f);
 

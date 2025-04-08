@@ -42,6 +42,7 @@ ZANE WEBSTER
 #include "ObjectHandler.h"
 #include "Creator.h"
 #include "BlockCursor.h"
+#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -143,22 +144,12 @@ int main(int argc, char* argv[]) {
                         
                             if (block_cursor.visible) {
                                 creator.UpdateCubeDefaultPosition(block_cursor.NextObjectPosition());
-                                object_handler.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetTrueData());
+                                if (creator.GetShape().type == TotalFrame::SHAPE_TYPE::SHAPE_NONE) object_handler.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().type, creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetTrueData());
+                                else object_handler.CreateShape(creator.GetShape());
                                 window_handler.NeedRender();
                             }
                         }
 
-
-                        ////////
-                        //
-                        // MOUSE MOVEMENT
-                        //
-                        ////////
-
-                        if (event.button.button == SDL_BUTTON_MIDDLE) {
-                            SDL_GetMouseState(&mouse_x, &mouse_y);
-                            camera.StartMouseMove(mouse_x, mouse_y);
-                        }
                         if (event.button.button == SDL_BUTTON_RIGHT) {
                             //// CHECK IF HITTING OBJECT FACE
                             glm::vec3 face_hit_pos;
@@ -169,6 +160,17 @@ int main(int argc, char* argv[]) {
                                 object_handler.Destory(object_handler.GetRayCollidingObjectWithFacePtr(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos));
                                 window_handler.NeedRender();
                             }
+                        }
+
+                        ////////
+                        //
+                        // MOUSE MOVEMENT
+                        //
+                        ////////
+
+                        if (event.button.button == SDL_BUTTON_MIDDLE) {
+                            SDL_GetMouseState(&mouse_x, &mouse_y);
+                            camera.StartMouseMove(mouse_x, mouse_y);
                         }
                         break;
                     case SDL_EVENT_MOUSE_MOTION:
@@ -223,14 +225,13 @@ int main(int argc, char* argv[]) {
                                     window_handler.UpdateName();
                                 }
                             }
+                            if (event.key.key == SDLK_1) {
+                                creator.ToggleSymmetry(creator.GetCubeDefault(), TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
+                            }
                         }
 
                         if (event.key.key == SDLK_TAB) {
                             creator.ChooseColor();
-                        }
-
-                        if (event.key.key == SDLK_1) {
-                            //
                         }
 
                         ////////

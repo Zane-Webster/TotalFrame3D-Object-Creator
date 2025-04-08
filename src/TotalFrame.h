@@ -19,13 +19,9 @@ ABOUT:
 Contains TotalFrame structs
 */
 
-#ifndef TF_MOVEMENT_KEYSET
-#define TF_MOVEMENT_KEYSET std::array<SDL_Keycode, 6>
-#endif
 
-#ifndef TF_TRIANGLE_VERTICES
-#define TF_TRIANGLE_VERTICES std::array<GLfloat, 18>
-#endif
+using TF_MOVEMENT_KEYSET = std::array<SDL_Keycode, 6>;
+using TF_TRIANGLE_VERTICES = std::array<GLfloat, 18>;
 
 class TotalFrame {
     public:
@@ -37,6 +33,21 @@ class TotalFrame {
         enum OBJECT_TYPE {
             BASIC_OBJ, // POSITION AND COLOR
             TEXTURE_OBJ // POSITION AND TEXTURE
+        };
+
+        enum SHAPE_TYPE {
+            SHAPE_NONE,
+            SYMMETRY,
+            SPHERE,
+            SQUARE
+        };
+
+        enum SYMMETRY_TYPE {
+            SYMMETRY_NONE,
+            ALL_AXIS,
+            X_AXIS,
+            Y_AXIS,
+            Z_AXIS
         };
 
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_LEFT = {SDLK_A, SDLK_LEFT};
@@ -54,11 +65,11 @@ class TotalFrame {
         static constexpr glm::vec3 READ_POS_FROM_FILE = glm::vec3(-1000.0f);
 
         struct MoveQueue {
-            MoveQueue(KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {
+            MoveQueue(TotalFrame::KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {
                 UpdateKeyset();
             }
 
-            KEYSET movement_keyset = WASD;
+            TotalFrame::KEYSET movement_keyset = WASD;
 
             // x, y, z
             // x = -1 = "left" :: x = 1 = "right" 

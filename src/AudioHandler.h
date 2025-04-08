@@ -10,6 +10,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_mixer.h>
 
+#include "TotalFrame.h"
 #include "Util.h"
 
 /*

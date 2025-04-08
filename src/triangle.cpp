@@ -20,7 +20,7 @@ bool Triangle::Verify() {
 
 void Triangle::LoadVertices(std::vector<GLfloat> p_vertices, std::vector<GLfloat> p_true_vertices) {
     vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
-    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();;
+    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
     translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
     if (p_vertices.size() == 18) {
         std::copy(p_vertices.begin(), p_vertices.end(), vertices->begin());

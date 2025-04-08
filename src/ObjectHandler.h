@@ -17,6 +17,7 @@
 #include "TotalFrame.h"
 #include "Util.h"
 #include "Object.h"
+#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -50,7 +51,8 @@ class ObjectHandler {
         // adds a pre-created object
         void Add(Object object);
 
-        void CreateShape(std::vector<glm::vec3> positions, Object object);
+        void CreateShape(Shape shape);
+
 
         //////// OBJECT DESTRUCTION
         void Destory(Object* object);
@@ -80,7 +82,7 @@ class ObjectHandler {
         std::vector<std::string> _SplitByObject(std::string object_data);
 
         //////// BASIC ATTRIBUTES
-        std::vector<Object> objects;
+        std::vector<Object> objects = {};
         // groups objects by which shader program they use
         std::unordered_map<GLuint, std::vector<Object>> shader_program_groups = {};
         // says which shader_programs need to be updated

@@ -46,6 +46,7 @@ class Object {
         GLuint shader_program = 0;
         glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
         glm::vec3 true_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
+        std::string object_path = "";
 
         /////// EXTERNAL ATTRIBUTES
         float aspect_ratio = 0.0f;

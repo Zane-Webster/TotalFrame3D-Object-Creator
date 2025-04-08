@@ -38,6 +38,41 @@ void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
 }
 
 //=============================
+// SHAPE FUNCTIONS
+//=============================
+
+Shape Creator::GetShape() {
+    shape.SetSymmetryPositions(adjusted_cube_default.GetTTPosition());
+    return shape;
+}
+
+void Creator::SetShape(TotalFrame::SHAPE_TYPE type, Object object) {
+    shape.type = type;
+    shape.object = object;
+    switch (type) {
+        case TotalFrame::SHAPE_TYPE::SHAPE_NONE:
+            shape.Clear();
+            break;
+        case TotalFrame::SHAPE_TYPE::SYMMETRY:
+            shape.symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS;
+            shape.SetSymmetryPositions(adjusted_cube_default.GetTTPosition());
+            break;
+        case TotalFrame::SHAPE_TYPE::SPHERE:
+            break;
+        case TotalFrame::SHAPE_TYPE::SQUARE:
+            break;
+    }
+}
+
+void Creator::ToggleSymmetry(Object object, TotalFrame::SYMMETRY_TYPE p_symmetry_type) {
+    if (shape.type == TotalFrame::SHAPE_TYPE::SYMMETRY) shape.Clear();
+    else {
+        shape.symmetry_type = p_symmetry_type;
+        Creator::SetShape(TotalFrame::SHAPE_TYPE::SYMMETRY, object);
+    }
+}
+
+//=============================
 // SAVING FUNCTIONS
 //=============================
 

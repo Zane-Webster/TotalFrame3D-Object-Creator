@@ -33,7 +33,7 @@ WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::st
     glFrontFace(GL_CCW);
 
     // line thickness
-    glLineWidth(1.25f);
+    glLineWidth(3.0f);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

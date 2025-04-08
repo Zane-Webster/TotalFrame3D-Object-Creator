@@ -137,14 +137,17 @@ TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
     glm::mat4 inverseView = glm::inverse(CameraHandler::_GetViewMatrix());
 
     // transform to eye space, then to world space
-    glm::vec4 eye_space_ray = inverseProjection * clip_space_ray;
-    eye_space_ray.z = -1.0f;
+    glm::vec4 eye_space_ray = glm::vec4(x, y, -1.0f, 1.0f);
+    eye_space_ray = inverseProjection * eye_space_ray;
+    eye_space_ray.z = -1.0f; // keep direction pointing forward
     eye_space_ray.w = 0.0f;
 
     // transform from eye space to world space
     glm::vec4 world_ray = inverseView * eye_space_ray;
 
-    return TotalFrame::Ray(position, glm::normalize(glm::vec3(world_ray))); 
+    glm::vec3 cam_world_position = glm::vec3(glm::inverse(CameraHandler::_GetViewMatrix())[3]);
+
+    return TotalFrame::Ray(cam_world_position, glm::normalize(glm::vec3(world_ray))); 
 }
 
 //=============================

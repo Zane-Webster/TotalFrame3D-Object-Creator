@@ -16,7 +16,7 @@
 
 #include "TotalFrame.h"
 #include "Util.h"
-#include "ObjectHandler.h"
+#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -38,6 +38,10 @@ class Creator {
         void UpdateCubeDefaultPosition(glm::vec3 position);
 
         //////// SHAPE CREATION FUNCTIONS
+        Shape GetShape();
+        void SetShape(TotalFrame::SHAPE_TYPE type, Object object);
+
+        void ToggleSymmetry(Object object, TotalFrame::SYMMETRY_TYPE symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
 
         //////// SAVING FUNCTIONS
         void Save(std::string object_data);
@@ -54,15 +58,13 @@ class Creator {
         std::string object_path = "";
         std::shared_ptr<std::string> object_name = std::make_shared<std::string>("untitled");
 
+        Shape shape;
+
         // the cube that will be placed by default
         Object cube_default;
         Object adjusted_cube_default;
 
         const char* filter_patterns[1] = {"*.tfobj"};
-
-        void _InitSave();
-        
-    
 };
 
 #endif // SRC_CREATOR_H_

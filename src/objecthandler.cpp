@@ -68,11 +68,12 @@ void ObjectHandler::Add(Object object) {
     shader_programs_need_update[object.shader_program] = true;
 }
 
-void ObjectHandler::CreateShape(std::vector<glm::vec3> p_positions, Object p_object) {
-    for (auto position : p_positions) {
-        ObjectHandler::Create(p_object.name, position, p_object.type, p_object.size[0], "", p_object.shader_program, p_object.GetData());
+void ObjectHandler::CreateShape(Shape shape) {
+    for (auto position : shape.positions) {
+        // create from object path because object.GetData() updates file position which messes things up
+        ObjectHandler::Create(shape.object.name, position, shape.object.type, shape.object.size[0], shape.object.object_path, shape.object.shader_program);
     }
-}
+} 
 
 //=============================
 // DESTRUCTION FUNCTIONS
