@@ -1,7 +1,24 @@
 #include "Creator.h"
+
+//=============================
+// DEFAULT CONSTRUCTOR
+//=============================
+
 Creator::Creator(std::string p_objects_path) : objects_path(p_objects_path) {
 
 }
+
+//=============================
+// BASIC FUNCTIONS
+//=============================
+
+std::shared_ptr<std::string> Creator::GetName() {
+    return object_name;
+}
+
+//=============================
+// CUBE DEFAULT FUNCTIONS
+//=============================
 
 void Creator::SetCubeDefault(Object object) {
     cube_default = object;
@@ -19,6 +36,10 @@ glm::vec3 Creator::GetCubeDefaultPosition() {
 void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
     adjusted_cube_default.SetPosition(position);
 }
+
+//=============================
+// SAVING FUNCTIONS
+//=============================
 
 void Creator::Save(std::string object_data) {
     // if untitled (not yet saved), create a new object. if the user exits, cancel save and return
@@ -50,6 +71,10 @@ bool Creator::NewObject() {
     return true;
 }
 
+//=============================
+// LOADING FUNCTIONS
+//=============================
+
 std::string Creator::Load() {
     const char* temp_path = tinyfd_openFileDialog("Load TotalFrame Object", objects_path.c_str(), 1, filter_patterns, "TotalFrame Object File *.tfobj", 0);
     if (temp_path == NULL) {
@@ -64,9 +89,9 @@ std::string Creator::Load() {
     return temp_path;
 }
 
-void Creator::Backup() {
-    
-}
+//=============================
+// COLOR FUNCTIONS
+//=============================
 
 void Creator::ChooseColor() {
     unsigned char temp_color[3] = {255, 255, 255};
@@ -82,8 +107,4 @@ void Creator::ChooseColor() {
     color[3] = 1.0f;
 
     adjusted_cube_default.SetColor(color);
-}
-
-std::shared_ptr<std::string> Creator::GetName() {
-    return object_name;
 }

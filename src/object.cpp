@@ -158,18 +158,18 @@ void Object::UpdatePosition(glm::vec3 camera_position) {
 
     // scale the camera size
     camera_scaled_size = size * final_scale;
-    half_size = camera_scaled_size * 0.5f;
+    half_size = camera_scaled_size;
 
     // calculate corners of the object
     corners = {
-        true_position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
-        true_position + rotation_matrix * glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
-        true_position + rotation_matrix * glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
-        true_position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
-        true_position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
-        true_position + rotation_matrix * glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
-        true_position + rotation_matrix * glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
-        true_position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
+        position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y, -half_size.z), // min x, min y, min z
+        position + rotation_matrix * glm::vec3( half_size.x, -half_size.y, -half_size.z), // max x, min y, min z
+        position + rotation_matrix * glm::vec3( half_size.x,  half_size.y, -half_size.z), // max x, max y, min z
+        position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y, -half_size.z), // min x, max y, min z
+        position + rotation_matrix * glm::vec3(-half_size.x, -half_size.y,  half_size.z), // min x, min y, max z
+        position + rotation_matrix * glm::vec3( half_size.x, -half_size.y,  half_size.z), // max x, min y, max z
+        position + rotation_matrix * glm::vec3( half_size.x,  half_size.y,  half_size.z), // max x, max y, max z
+        position + rotation_matrix * glm::vec3(-half_size.x,  half_size.y,  half_size.z)  // min x, max y, max z
     };
 
     std::vector<glm::vec3> lines_corners = {

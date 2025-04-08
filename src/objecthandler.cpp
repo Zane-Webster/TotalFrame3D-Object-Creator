@@ -52,12 +52,6 @@ void ObjectHandler::Create(std::string name, glm::vec3 position, TotalFrame::OBJ
     shader_programs_need_update[objects.back().shader_program] = true;
 }
 
-void ObjectHandler::Add(Object object) {
-    objects.push_back(object);
-    shader_program_groups[object.shader_program].push_back(object);
-    shader_programs_need_update[object.shader_program] = true;
-}
-
 void ObjectHandler::ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program) {
     objects.clear();
 
@@ -65,6 +59,32 @@ void ObjectHandler::ClearAndCreate(std::string name, glm::vec3 position, TotalFr
 
     for (auto object_data : objects_data) {
         ObjectHandler::Create(name, position, type, size, obj_path, shader_program, object_data);
+    }
+}
+
+void ObjectHandler::Add(Object object) {
+    objects.push_back(object);
+    shader_program_groups[object.shader_program].push_back(object);
+    shader_programs_need_update[object.shader_program] = true;
+}
+
+void ObjectHandler::CreateShape(std::vector<glm::vec3> p_positions, Object p_object) {
+    for (auto position : p_positions) {
+        ObjectHandler::Create(p_object.name, position, p_object.type, p_object.size[0], "", p_object.shader_program, p_object.GetData());
+    }
+}
+
+//=============================
+// DESTRUCTION FUNCTIONS
+//=============================
+
+void ObjectHandler::Destory(Object* p_object) {
+    for (int i = 0; i < objects.size(); i++) {
+        if (&objects[i] == p_object) {
+            objects[i].FreeAll();
+            objects.erase(objects.begin() + i);
+            break;
+        }
     }
 }
 
@@ -138,6 +158,34 @@ Object ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::ve
             if (distance < closest_distance) {
                 closest_distance = distance;
                 closest_object = object;
+                closest_face_hit_normal = face_hit_normal;
+            }
+        }
+    }
+    
+    face_hit_normal_out = closest_face_hit_normal;
+
+    return closest_object;
+}
+
+Object* ObjectHandler::GetRayCollidingObjectWithFacePtr(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out) {
+    // set closest_object to the farthest possible
+    float closest_distance = std::numeric_limits<float>::max();
+
+    Object* closest_object = nullptr;
+
+    glm::vec3 closest_face_hit_normal = glm::vec3(-1000.0f);
+
+    for (auto& object : objects) {  // Iterate by reference
+        float distance;
+        glm::vec3 face_hit_normal;
+        
+        // If the object collides with the ray
+        if (object.RayCollidesWithFace(ray, distance, face_hit_normal)) {
+            // If the object is closer than the others
+            if (distance < closest_distance) {
+                closest_distance = distance;
+                closest_object = &object;  // Correctly get the address of the object
                 closest_face_hit_normal = face_hit_normal;
             }
         }

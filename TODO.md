@@ -1,4 +1,4 @@
-fix object IsVisible() for multiple objects
+fix placement on far away objects
 
 add Circle creation to creator for ease of making planets
 

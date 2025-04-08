@@ -46,10 +46,14 @@ class ObjectHandler {
         //////// OBJECT CREATION
         // creates an object
         void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
+        void ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
         // adds a pre-created object
         void Add(Object object);
 
-        void ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program);
+        void CreateShape(std::vector<glm::vec3> positions, Object object);
+
+        //////// OBJECT DESTRUCTION
+        void Destory(Object* object);
 
         //////// SHADER PROGRAMS
         // updates a shader program if it needs updated
@@ -63,6 +67,7 @@ class ObjectHandler {
         //////// RAYS
         std::shared_ptr<Object> GetRayCollidingObject(TotalFrame::Ray ray);
         Object GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
+        Object* GetRayCollidingObjectWithFacePtr(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
         std::vector<std::shared_ptr<Object>> GetRayCollidingObjects(TotalFrame::Ray ray);
 
         //////// RENDERING

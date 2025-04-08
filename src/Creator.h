@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 //// TFD
 #include "tinyfiledialogs.h"
@@ -24,26 +25,29 @@ class Creator {
     public:
         Creator(std::string objects_path);
 
+        //////// BASIC ATTRIBUTES
         glm::vec4 color = glm::vec4(1.0f);
-        bool saved = false;
 
+        //////// BASIC FUNCTIONS
+        std::shared_ptr<std::string> GetName();
+
+        //////// CUBE DEFAULT FUNCTIONS
         void SetCubeDefault(Object object);
         Object GetCubeDefault();
         glm::vec3 GetCubeDefaultPosition();
         void UpdateCubeDefaultPosition(glm::vec3 position);
 
-        // save object data
+        //////// SHAPE CREATION FUNCTIONS
+
+        //////// SAVING FUNCTIONS
         void Save(std::string object_data);
         bool NewObject();
 
-        // load object data
+        //////// LOADING FUNCTIONS
         std::string Load();
 
-        void Backup();
-
+        //////// COLOR FUNCTIONS
         void ChooseColor();
-
-        std::shared_ptr<std::string> GetName();
 
     private:
         std::string objects_path = "";
