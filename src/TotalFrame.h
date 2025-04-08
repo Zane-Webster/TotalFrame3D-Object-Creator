@@ -51,6 +51,7 @@ class TotalFrame {
         static constexpr std::array<TF_MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
 
         static constexpr float TRIANGLE_SIZE = 0.1f;
+        static constexpr glm::vec3 READ_POS_FROM_FILE = glm::vec3(-1000.0f);
 
         struct MoveQueue {
             MoveQueue(KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {

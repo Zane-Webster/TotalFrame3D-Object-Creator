@@ -37,7 +37,7 @@ void Creator::Save(std::string object_data) {
 }
 
 bool Creator::NewObject() {
-    const char * temp_path = tinyfd_saveFileDialog("Save TotalFrame Object", ".tfobj", 1, filter_patterns, "TotalFrame Object File *.tfobj");
+    const char * temp_path = tinyfd_saveFileDialog("New TotalFrame Object", ".tfobj", 1, filter_patterns, "TotalFrame Object File *.tfobj");
     if (temp_path == NULL) {
         return false;
     }

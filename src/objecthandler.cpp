@@ -60,7 +60,12 @@ void ObjectHandler::Add(Object object) {
 
 void ObjectHandler::ClearAndCreate(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program) {
     objects.clear();
-    ObjectHandler::Create(name, position, type, size, obj_path, shader_program);
+
+    std::vector<std::string> objects_data = ObjectHandler::_SplitByObject(ObjectHandler::_ReadData(obj_path));
+
+    for (auto object_data : objects_data) {
+        ObjectHandler::Create(name, position, type, size, obj_path, shader_program, object_data);
+    }
 }
 
 //=============================
@@ -134,7 +139,6 @@ Object ObjectHandler::GetRayCollidingObjectWithFace(TotalFrame::Ray ray, glm::ve
                 closest_distance = distance;
                 closest_object = object;
                 closest_face_hit_normal = face_hit_normal;
-                //Util::Debug(glm::to_string(closest_object.GetTTPosition()));
             }
         }
     }
@@ -165,6 +169,54 @@ void ObjectHandler::Render(Object object, bool is_visible) {
     if (is_visible){
         object.Render();
     }
+}
+
+//=============================
+// PRIVATE FUNCTIONS
+//=============================
+
+std::string ObjectHandler::_ReadData(std::string path) {
+    // return and throw error if path doesn't exist
+    if (!std::filesystem::exists(path)) {
+        Util::ThrowError("INVALID OBJECT PATH", "ObjectHandler::_ReadData");
+        return {};
+    }
+
+    //// read file, and add to string
+    std::ifstream obj_file(path);
+    std::string object_data((std::istreambuf_iterator<char>(obj_file)), std::istreambuf_iterator<char>());
+
+    return object_data;
+}
+
+std::vector<std::string> ObjectHandler::_SplitByObject(std::string object_data) {
+    std::vector<std::string> objects_data = {};
+    std::string temp_object_data = "";
+    std::istringstream stream(object_data);
+    std::string line = "";
+    bool first_line = true;
+
+    while (std::getline(stream, line)) {
+        int spaces = 0;
+        for (auto letter : line) {
+            if (letter == ' ') spaces++;
+        }
+
+        // if there are only 2 spaces, then that is a position vertice, and the next object can be started 
+        if (spaces == 2 && !first_line) {
+            objects_data.push_back(temp_object_data);
+            temp_object_data.clear();
+        }
+
+        temp_object_data += line + '\n';
+
+        first_line = false;
+    }
+
+    // push the last object
+    objects_data.push_back(temp_object_data);
+
+    return objects_data;
 }
 
 //=============================

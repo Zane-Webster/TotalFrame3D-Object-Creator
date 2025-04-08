@@ -42,6 +42,7 @@ class Triangle {
 
         //////// MOVEMENT FUNCTIONS
         void SetPosition(glm::vec3 position, float aspect_ratio);
+        void ResetTruePosition();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);

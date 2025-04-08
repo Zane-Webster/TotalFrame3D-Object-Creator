@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <memory>
 
+#include <string>
+
 #include <SDL3/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -68,6 +70,10 @@ class ObjectHandler {
         void Render(Object object, bool is_visible);
 
     private:
+        //////// FILE READING FUNCTIONS
+        std::string _ReadData(std::string path);
+        std::vector<std::string> _SplitByObject(std::string object_data);
+
         //////// BASIC ATTRIBUTES
         std::vector<Object> objects;
         // groups objects by which shader program they use

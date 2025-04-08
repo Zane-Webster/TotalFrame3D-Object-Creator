@@ -20,7 +20,7 @@ bool Triangle::Verify() {
 
 void Triangle::LoadVertices(std::vector<GLfloat> p_vertices, std::vector<GLfloat> p_true_vertices) {
     vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
-    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
+    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();;
     translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
     if (p_vertices.size() == 18) {
         std::copy(p_vertices.begin(), p_vertices.end(), vertices->begin());
@@ -71,6 +71,7 @@ std::string Triangle::GetData() {
         temp_data += std::to_string(vertice);
         temp_data += ' ';
     }
+
     //get rid of the last space
     temp_data.pop_back();
     return temp_data;
@@ -106,6 +107,7 @@ void Triangle::SetPosition(glm::vec3 position, float aspect_ratio) {
         (*vertices)[index + 1] = stretched_position[1] + (*true_vertices)[index + 1];
         (*vertices)[index + 2] = stretched_position[2] + (*true_vertices)[index + 2];
     }
+
     Triangle::Build();
 }
 

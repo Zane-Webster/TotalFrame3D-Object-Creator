@@ -16,43 +16,6 @@ Object::Object(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE
 // BASIC FUNCTIONS
 //=============================
 
-void Object::Verify() {
-    for (auto [shader_program, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
-            if (triangle.Verify() == false) {
-                Util::ThrowError("INVALID VERTEX ARRAY", "Object::Verify");
-            }
-        }
-    }
-}
-
-void Object::Load(std::string obj_path, std::string object_data_str) {
-    if (object_data_str == "") triangles[shader_program] = Object::_Read(obj_path);
-    else triangles[shader_program] = Object::_CreateFromStr(object_data_str);
-}
-
-void Object::Render() {
-    Object::BuildLines();
-
-    // render all triangles
-    for (auto [shader_program, triangles_i] : triangles) {
-        glUseProgram(shader_program);
-
-        GLuint model_location = glGetUniformLocation(shader_program, "model_matrix");
-        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
-
-        for (auto triangle : triangles_i) {
-            triangle.Render();
-        }
-    }
-    
-    // render lines
-    glBindVertexArray(lines_vertex_array);
-    glDrawArrays(GL_LINES, 0, lines_vertices.size());
-
-    glBindVertexArray(0);
-}
-
 void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT_TYPE p_type, float p_size, std::string p_obj_path, GLuint p_shader_program, float p_aspect_ratio, std::string object_data_str) {
     name = p_name;
     type = p_type;
@@ -61,40 +24,82 @@ void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT
     shader_program = p_shader_program;
     aspect_ratio = p_aspect_ratio;
 
-    Object::Load(p_obj_path, object_data_str);
-    Object::SetPosition(p_position);
+    glm::vec3 temp_position = glm::vec3(0.0f);
+
+    Object::Load(p_obj_path, temp_position, object_data_str);
+
+    // if position is being read from file, read from file then set position, otherwise set defined position
+    if (p_position == TotalFrame::READ_POS_FROM_FILE) Object::SetPositionNoTriangles(temp_position);
+    else Object::SetPositionNoTriangles(p_position);
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
 
     Object::UpdatePosition(glm::vec3(0.0f));
 
-    // Create the VAO and VBO for lines
-    glGenVertexArrays(1, &lines_vertex_array);
-    glGenBuffers(1, &lines_vertex_buffer);
-    glBindVertexArray(lines_vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
-    // Initialize lines with a dummy size initially
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * lines_vertices.size(), nullptr, GL_DYNAMIC_DRAW);
-    // Define the position attribute for the lines
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0); // Unbind VAO
+    Object::_BuildLines();
+}
+
+void Object::Load(std::string obj_path, glm::vec3& p_position_out, std::string object_data_str) {
+    glm::vec3 position_out = glm::vec3(0.0f);
+    // if there is no object_data already read, read the file, then pass to _CreateFromStr()
+    if (object_data_str == "") triangles[shader_program] = Object::_Read(obj_path, position_out);
+    // create triangles
+    else triangles[shader_program] = Object::_CreateFromStr(object_data_str, position_out);
+    p_position_out = position_out;
+}
+
+void Object::Render() {
+    Object::_BuildRenderLines();
+
+    // render all triangles
+    for (auto [shader_program, triangles_i] : triangles) {
+        glUseProgram(shader_program);
+
+        // set model matrix
+        GLuint model_location = glGetUniformLocation(shader_program, "model_matrix");
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
+
+        for (auto triangle : triangles_i) {
+            triangle.Render();
+        }
+    }
+    
+    Object::_RenderLines();
 }
 
 std::string Object::GetData() {
     std::string temp_data = "";
+    // get posiiton
+    for (int i = 0; i < 3; i++) {
+        temp_data += std::to_string(translated_true_position[i]);
+        temp_data += ' ';
+    }
+    temp_data.pop_back();
+    temp_data += '\n';
+
+    // get vertices data
     for (auto [sp, triangles_i] : triangles) {
         for (auto triangle : triangles_i) {
             temp_data += triangle.GetData();
             temp_data += '\n';
-        }
+        } 
     }
+
     return temp_data;
 }
 
 std::string Object::GetTrueData() {
     std::string temp_data = "";
+    // get posiiton
+    for (int i = 0; i < 3; i++) {
+        temp_data += std::to_string(translated_true_position[i]);
+        temp_data += ' ';
+    }
+    temp_data.pop_back();
+    temp_data += '\n';
+
+    // get true vertices data
     for (auto [sp, triangles_i] : triangles) {
         for (auto triangle : triangles_i) {
             temp_data += triangle.GetTrueData();
@@ -104,6 +109,15 @@ std::string Object::GetTrueData() {
     return temp_data;
 }
 
+void Object::Verify() {
+    for (auto [shader_program, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            if (triangle.Verify() == false) {
+                Util::ThrowError("INVALID VERTEX ARRAY", "Object::Verify");
+            }
+        }
+    }
+}
 
 //=============================
 // COLOR FUNCTIONS
@@ -116,19 +130,6 @@ void Object::SetColor(glm::vec3 color) {
         }
     }
 }
-
-//=============================
-// LINE FUNCTIONS
-//=============================
-
-void Object::BuildLines() {
-    // Update the VBO with new line data
-    glBindVertexArray(lines_vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * lines_vertices.size(), lines_vertices.data());
-    glBindVertexArray(0); // Unbind VAO
-}
-
 
 //=============================
 // POSITIONAL FUNCTIONS
@@ -210,6 +211,16 @@ glm::vec3 Object::GetTTPosition() {
 }
 
 void Object::SetPosition(glm::vec3 p_position) {
+    Object::SetPositionNoTriangles(p_position);
+
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            triangle.SetPosition(translated_true_position, aspect_ratio);
+        }
+    }
+}
+
+void Object::SetPositionNoTriangles(glm::vec3 p_position) {
     translated_true_model_matrix[3][0] = p_position[0];
     translated_true_model_matrix[3][1] = p_position[1];
     translated_true_model_matrix[3][2] = p_position[2];
@@ -222,12 +233,6 @@ void Object::SetPosition(glm::vec3 p_position) {
     model_matrix[3][1] = stretched_position[1];
     model_matrix[3][2] = stretched_position[2];
     position = stretched_position;
-
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
-            triangle.SetPosition(translated_true_position, aspect_ratio);
-        }
-    }
 }
 
 bool Object::IsVisible(glm::mat4 view_projection_matrix) {
@@ -246,6 +251,10 @@ bool Object::IsVisible(glm::mat4 view_projection_matrix) {
 
     return false;
 }
+
+//=============================
+// TRANSLATION FUNCTIONS
+//=============================
 
 void Object::Translate(glm::vec3 translation) {
     glm::vec3 translated_position = translated_true_position + translation;
@@ -362,7 +371,7 @@ bool Object::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3
 // PRIVATE FUNCTIONS
 //=============================
 
-std::vector<Triangle> Object::_Read(std::string obj_path) {
+std::vector<Triangle> Object::_Read(std::string obj_path, glm::vec3& p_position_out) {
     // return and throw error if path doesn't exist
     if (!std::filesystem::exists(obj_path)) {
         Util::ThrowError("INVALID OBJECT PATH", "Object::_ReadObject");
@@ -373,18 +382,25 @@ std::vector<Triangle> Object::_Read(std::string obj_path) {
     std::ifstream obj_file(obj_path);
     std::string object_data((std::istreambuf_iterator<char>(obj_file)), std::istreambuf_iterator<char>());
     
-    return Object::_CreateFromStr(object_data);
+    glm::vec3 temp_position_out = glm::vec3(0.0f);
+    std::vector<Triangle> temp_triangles = Object::_CreateFromStr(object_data, temp_position_out); 
+
+    p_position_out = temp_position_out;
+
+    return temp_triangles;
 }
 
-std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
-    // define temporary variables
+std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str, glm::vec3& p_position_out) {
     std::vector<Triangle> temp_triangles = {};
     std::vector<std::string> temp_vertices_str = {};
     std::vector<GLfloat> temp_vertices = {};
     std::vector<GLfloat> temp_true_vertices = {};
-    std::string temp_number_str = "";
-
+    
+    glm::vec3 position_out = glm::vec3(0.0f);
+    std::vector<GLfloat> temp_position_out = {};
+    
     // read through the entire object data string and split it into triangle data lines
+    std::string temp_number_str = "";
     for (auto letter : object_data_str) {
         if (letter == '\n') {
             temp_vertices_str.push_back(temp_number_str);
@@ -394,33 +410,89 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str) {
         temp_number_str += letter;
     }
 
-    // read through each set of vertices (triangle data), add to temp_vertices, create a triangle from the temp_vertices, and build the triangle
-    for (auto line : temp_vertices_str) {
-        temp_vertices = {};
-        temp_true_vertices = {};
-        temp_number_str = {};
-
-        for (auto letter : line) {
-            if (letter == ' ') {
-                temp_vertices.push_back(std::stof(temp_number_str));
-                temp_true_vertices.push_back(std::stof(temp_number_str));
-
-                // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
-                if (temp_vertices.size() == 2 || temp_vertices.size() == 8 || temp_vertices.size() == 14) temp_vertices.back() *= aspect_ratio;
-                
-                temp_number_str = "";
-                continue;
-            }
-            temp_number_str += letter;
+    // read through first line and set position out
+    std::string temp_number_str_pos = "";
+    for (auto letter : temp_vertices_str[0]) {
+        if (letter == ' ') {
+            temp_position_out.push_back(std::stof(temp_number_str_pos));
+            temp_number_str_pos = "";
+            continue;
         }
-
-        temp_vertices.push_back(std::stof(temp_number_str));
-        temp_true_vertices.push_back(std::stof(temp_number_str));
-
-        temp_triangles.push_back(Triangle(temp_vertices, temp_true_vertices));
+        temp_number_str_pos += letter;
     }
 
+    temp_position_out.push_back(std::stof(temp_number_str_pos));
+
+    position_out[0] = temp_position_out[0];
+    position_out[1] = temp_position_out[1];
+    position_out[2] = temp_position_out[2];
+
+    // read through each set of vertices (triangle data), add to temp_vertices, create a triangle from the temp_vertices, and build the triangle
+    std::string temp_number_str_vertices = "";
+    bool first_line = true;
+    for (auto line : temp_vertices_str) {
+        if (!first_line) {
+            temp_vertices = {};
+            temp_true_vertices = {};
+            temp_number_str_vertices = "";
+
+            for (auto letter : line) {
+                if (letter == ' ') {
+                    temp_vertices.push_back(std::stof(temp_number_str_vertices));
+                    temp_true_vertices.push_back(std::stof(temp_number_str_vertices));
+
+                    // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
+                    if (temp_vertices.size() == 2 || temp_vertices.size() == 8 || temp_vertices.size() == 14) temp_vertices.back() *= aspect_ratio;
+                    
+                    temp_number_str_vertices = "";
+                    continue;
+                }
+                temp_number_str_vertices += letter;
+            }
+
+            temp_vertices.push_back(std::stof(temp_number_str_vertices));
+            temp_true_vertices.push_back(std::stof(temp_number_str_vertices));
+
+            temp_triangles.push_back(Triangle(temp_vertices, temp_true_vertices));
+        }
+        first_line = false;
+    }
+
+    p_position_out = position_out;
     return temp_triangles;
+}
+
+//=============================
+// LINE FUNCTIONS
+//=============================
+
+void Object::_BuildRenderLines() {
+    // update the VBO with new line data
+    glBindVertexArray(lines_vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * lines_vertices.size(), lines_vertices.data());
+    glBindVertexArray(0);
+}
+
+void Object::_BuildLines() {
+    // generate line vertex buffer and array
+    glGenVertexArrays(1, &lines_vertex_array);
+    glGenBuffers(1, &lines_vertex_buffer);
+
+    glBindVertexArray(lines_vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * lines_vertices.size(), nullptr, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+}
+
+void Object::_RenderLines() {
+    glBindVertexArray(lines_vertex_array);
+    glDrawArrays(GL_LINES, 0, lines_vertices.size());
+    glBindVertexArray(0);
 }
 
 //=============================

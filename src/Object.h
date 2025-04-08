@@ -11,6 +11,9 @@
 #include <filesystem>
 #include <fstream>
 
+#include <string>
+#include <sstream>
+
 #include <SDL3/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -48,27 +51,26 @@ class Object {
         float aspect_ratio = 0.0f;
 
         //////// BASIC FUNCTIONS
-        void Verify();
-        void Load(std::string obj_path, std::string object_data_str = "");
-        void Render();
         void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
+        void Load(std::string obj_path, glm::vec3& position_out, std::string object_data_str = "");
+        void Render();
         std::string GetData();
         std::string GetTrueData();
+        void Verify();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
-
-        //////// LINE FUNCTIONS
-        void BuildLines();
-        void RenderLines();
 
         //////// POSITIONAL FUNCTIONS
         void UpdatePosition(glm::vec3 camera_position);
         glm::vec3 GetPosition();
         glm::vec3 GetTTPosition();
         void SetPosition(glm::vec3 position);
+        void SetPositionNoTriangles(glm::vec3 position);
+
         bool IsVisible(glm::mat4 view_projection_matrix);
 
+        //////// TRANSLATION FUNCTIONS
         void Translate(glm::vec3 translation);
         void ResetTranslation();
 
@@ -106,8 +108,13 @@ class Object {
         glm::vec3 axes[3] = {glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)};
 
         //////// BASIC FUNCTIONS
-        std::vector<Triangle> _Read(std::string obj_path);
-        std::vector<Triangle> _CreateFromStr(std::string object_data_str);
+        std::vector<Triangle> _Read(std::string obj_path, glm::vec3& position_out);
+        std::vector<Triangle> _CreateFromStr(std::string object_data_str, glm::vec3& position_out);
+
+        //////// LINE FUNCTIONS
+        void _BuildRenderLines();
+        void _BuildLines();
+        void _RenderLines();
 };
 
 #endif // SRC_OBJECT_H_
