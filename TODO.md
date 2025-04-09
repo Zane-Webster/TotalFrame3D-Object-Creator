@@ -1,14 +1,15 @@
-**BIG:**
-add skybox properties with tile objects
+# TotalFrame3D Object Creator TODO
 
-create docs
+## TO DO:
 
-**MEDIUM:**
-fix color in shapes due to reading obj_path instead of obj_data
+**BIG:**</br>
+- add skybox properties with tile objects
+- create docs
 
-camera rotation keys
+**MEDIUM:**</br>
+- fix color in shapes due to reading obj_path instead of obj_data
+- camera rotation keys
+- object_handler rotation
 
-object_handler rotation
-
-**SMALL:**
-color picker
+**SMALL:**</br>
+- color picker
