@@ -209,6 +209,7 @@ int main(int argc, char* argv[]) {
                                 creator.Save(object_handler.GetTrueData());
                                 window_handler.UpdateName();
                             }
+
                             //// LOADING
                             if (event.key.key == SDLK_O) {
                                 if (*creator.GetName() != "untitled") creator.Save(object_handler.GetTrueData());
@@ -219,6 +220,7 @@ int main(int argc, char* argv[]) {
                                     window_handler.UpdateName();
                                 }
                             }
+
                             //// NEW OBJECT
                             if (event.key.key == SDLK_N) {
                                 if (*creator.GetName() != "untitled") creator.Save(object_handler.GetTrueData());
@@ -228,9 +230,25 @@ int main(int argc, char* argv[]) {
                                     window_handler.UpdateName();
                                 }
                             }
+
                             //// EXPORT
-                            if (event.key.key == SDLK_E) {
+                            if (event.key.key == SDLK_M) {
                                 creator.Export(object_handler.GetExportData());
+                            }
+                            
+                            //// ROTATE CAMERA LEFT
+                            if (event.key.key == SDLK_Q) {
+
+                            }
+
+                            //// ROTATE CAMERA RIGHT
+                            if (event.key.key == SDLK_E) {
+
+                            }
+
+                            //// COLOR PICKER
+                            if (event.key.key == SDLK_T) {
+
                             }
 
                             //// SYMMETRY TOGGLE
