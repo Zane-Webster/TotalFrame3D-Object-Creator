@@ -12,13 +12,13 @@
 
 #include "TotalFrame.h"
 #include "Util.h"
-#include "Object.h"
+#include "Cube.h"
 
 class Shape {
     public:
         Shape();
 
-        Object object;
+        Cube cube;
         std::vector<glm::vec3> positions = {};
         TotalFrame::SHAPE_TYPE type = TotalFrame::SHAPE_TYPE::SHAPE_NONE;
         TotalFrame::SYMMETRY_TYPE symmetry_type = TotalFrame::SYMMETRY_TYPE::SYMMETRY_NONE;

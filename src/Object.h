@@ -7,118 +7,95 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-
-#include <filesystem>
-#include <fstream>
+#include <map>
 
 #include <string>
-#include <sstream>
 
 #include <SDL3/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "TotalFrame.h"
 #include "Util.h"
-#include "Triangle.h"
+#include "Cube.h"
+#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
 
 /*
 ABOUT:
-A collection of triangles with a shader program and positional/transformational attributes. Currently only capable of displaying colored Triangles (texture support maybe coming TBA)
+Handles the creation, updating and rendering of Cubes
 
 NOTES:
-Use ObjectHandler to control objects for ease of use and safety.
+You can create cubes directly using object.Create() (preferred method).
+Ensure you link the CameraHandler's view_projection_matrix to cube
+Ensure you call UpdateAndRenderAll(), along with CameraHandler::UpdateShaderPrograms(GetShaderProgramsUpdates()) for proper results in rendering and handling Objects.
 */
 
 class Object {
     public:
-        Object();
-        Object(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
+        Object(TotalFrame::OBJECT_TYPE type, float aspect_ratio);
         void FreeAll();
 
         //////// BASIC ATTRIBUTES
-        std::string name = "";
         TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::CUBE_OBJ;
-        GLuint shader_program = 0;
-        glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
-        glm::vec3 true_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
-        std::string object_path = "";
 
-        /////// EXTERNAL ATTRIBUTES
-        float aspect_ratio = 0.0f;
+        //////// BASIC
+        void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
+        void UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
 
-        //////// BASIC FUNCTIONS
-        void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, float aspect_ratio, std::string object_data_str = "");
-        void Load(std::string obj_path, glm::vec3& position_out, std::string object_data_str = "");
-        void Render();
         std::string GetData();
         std::string GetTrueData();
-        void Verify();
 
-        //////// EXPORTATION FUNCTIONS
+        //////// EXPORTATION
         std::string GetExportData();
 
-        //////// COLOR FUNCTIONS
-        void SetColor(glm::vec3 color);
+        //////// CUBE CREATION
+        // creates a cube
+        void Create(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
+        void ClearAndCreate(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program);
+        // adds a pre-created cube
+        void Add(Cube cube);
 
-        //////// POSITIONAL FUNCTIONS
-        void UpdatePosition(glm::vec3 camera_position);
-        glm::vec3 GetPosition();
-        glm::vec3 GetTTPosition();
-        void SetPosition(glm::vec3 position);
-        void SetPositionNoTriangles(glm::vec3 position);
+        void CreateShape(Shape shape);
 
-        bool IsVisible(glm::mat4 view_projection_matrix);
+        //////// CUBE DESTRUCTION
+        void Destory(Cube* cube);
 
-        //////// TRANSLATION FUNCTIONS
-        void Translate(glm::vec3 translation);
-        void ResetTranslation();
+        //////// SHADER PROGRAMS
+        // updates a shader program if it needs updated
+        void UpdateSP(Cube cube, bool is_visible);
+        // returns all shader programs that need updated
+        std::vector<GLuint> GetShaderProgramsUpdates();
 
-        //////// RAY FUNCTIONS
-        bool RayCollides(TotalFrame::Ray ray);
-        bool RayCollides(TotalFrame::Ray ray, float& tmin_out);
-        bool RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3& face_hit_normal_out);
-    
+        //////// CAMERA SCALING
+        void UpdateCubeCameraScale(Cube cube, glm::vec3 camera_position, bool is_visible);
+
+        //////// RAYS
+        std::shared_ptr<Cube> GetRayCollidingCube(TotalFrame::Ray ray);
+        Cube GetRayCollidingCubeWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
+        Cube* GetRayCollidingCubeWithFacePtr(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
+        std::vector<std::shared_ptr<Cube>> GetRayCollidingCubes(TotalFrame::Ray ray);
+
+        //////// RENDERING
+        // renders an cube if it is in view
+        void Render(Cube cube, bool is_visible);
+
     private:
+        //////// FILE READING FUNCTIONS
+        std::string _ReadData(std::string path);
+        std::vector<std::string> _SplitByCube(std::string cube_data);
+
         //////// BASIC ATTRIBUTES
-        std::unordered_map<GLuint, std::vector<Triangle>> triangles = {};
+        std::vector<Cube> cubes = {};
+        // groups cubes by which shader program they use
+        std::unordered_map<GLuint, std::vector<Cube>> shader_program_groups = {};
+        // says which shader_programs need to be updated
+        std::unordered_map<GLuint, bool> shader_programs_need_update = {};
 
-        //////// POSITION ATTRIBUTES
-        // position to render at during runtime
-        glm::vec3 position = glm::vec3(0.0f);
-        // the true position, not translated
-        glm::vec3 true_position = glm::vec3(0.0f);
-        // the true position, translated, but not stretched by aspect ratio
-        glm::vec3 translated_true_position = glm::vec3(0.0f);
-        std::vector<glm::vec3> corners = {};
+        float aspect_ratio = 1.778f;
 
-        //////// LINE ATTRIBUTES
-        std::vector<glm::vec3> lines_vertices = {};
-        GLuint lines_vertex_array = 0;
-        GLuint lines_vertex_buffer = 0;
-
-        //////// TRANSFORMATION ATTRIBUTES
-        glm::mat4 model_matrix = glm::mat4(1.0f);
-        glm::mat4 true_model_matrix = glm::mat4(1.0f);
-        glm::mat4 translated_true_model_matrix = glm::mat4(1.0f);
-
-        //////// OBB ATTRIBUTES
-        glm::vec3 half_size = glm::vec3(0.0f);
-        glm::vec3 camera_scaled_size = glm::vec3(0.1f);
-        glm::vec3 axes[3] = {glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)};
-
-        //////// BASIC FUNCTIONS
-        std::vector<Triangle> _Read(std::string obj_path, glm::vec3& position_out);
-        std::vector<Triangle> _CreateFromStr(std::string object_data_str, glm::vec3& position_out);
-
-        //////// LINE FUNCTIONS
-        void _BuildRenderLines();
-        void _BuildLines();
-        void _RenderLines();
 };
 
 #endif // SRC_OBJECT_H_

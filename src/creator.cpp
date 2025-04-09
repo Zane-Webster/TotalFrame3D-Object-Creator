@@ -20,12 +20,12 @@ std::shared_ptr<std::string> Creator::GetName() {
 // CUBE DEFAULT FUNCTIONS
 //=============================
 
-void Creator::SetCubeDefault(Object object) {
-    cube_default = object;
-    adjusted_cube_default = object;
+void Creator::SetCubeDefault(Cube cube) {
+    cube_default = cube;
+    adjusted_cube_default = cube;
 }
 
-Object Creator::GetCubeDefault() {
+Cube Creator::GetCubeDefault() {
     return adjusted_cube_default;
 }
 
@@ -46,9 +46,9 @@ Shape Creator::GetShape() {
     return shape;
 }
 
-void Creator::SetShape(TotalFrame::SHAPE_TYPE type, Object object) {
+void Creator::SetShape(TotalFrame::SHAPE_TYPE type, Cube cube) {
     shape.type = type;
-    shape.object = object;
+    shape.cube = cube;
     switch (type) {
         case TotalFrame::SHAPE_TYPE::SHAPE_NONE:
             shape.Clear();
@@ -64,11 +64,11 @@ void Creator::SetShape(TotalFrame::SHAPE_TYPE type, Object object) {
     }
 }
 
-void Creator::ToggleSymmetry(Object object, TotalFrame::SYMMETRY_TYPE p_symmetry_type) {
+void Creator::ToggleSymmetry(Cube cube, TotalFrame::SYMMETRY_TYPE p_symmetry_type) {
     if (shape.type == TotalFrame::SHAPE_TYPE::SYMMETRY) shape.Clear();
     else {
         shape.symmetry_type = p_symmetry_type;
-        Creator::SetShape(TotalFrame::SHAPE_TYPE::SYMMETRY, object);
+        Creator::SetShape(TotalFrame::SHAPE_TYPE::SYMMETRY, cube);
     }
 }
 

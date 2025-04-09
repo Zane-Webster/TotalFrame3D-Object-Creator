@@ -17,6 +17,7 @@
 #include "TotalFrame.h"
 #include "Util.h"
 #include "Shape.h"
+#include "Cube.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -32,16 +33,16 @@ class Creator {
         std::shared_ptr<std::string> GetName();
 
         //////// CUBE DEFAULT FUNCTIONS
-        void SetCubeDefault(Object object);
-        Object GetCubeDefault();
+        void SetCubeDefault(Cube cube);
+        Cube GetCubeDefault();
         glm::vec3 GetCubeDefaultPosition();
         void UpdateCubeDefaultPosition(glm::vec3 position);
 
         //////// SHAPE CREATION FUNCTIONS
         Shape GetShape();
-        void SetShape(TotalFrame::SHAPE_TYPE type, Object object);
+        void SetShape(TotalFrame::SHAPE_TYPE type, Cube cube);
 
-        void ToggleSymmetry(Object object, TotalFrame::SYMMETRY_TYPE symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
+        void ToggleSymmetry(Cube cube, TotalFrame::SYMMETRY_TYPE symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
 
         //////// SAVING FUNCTIONS
         void Save(std::string object_data);
@@ -65,8 +66,8 @@ class Creator {
         Shape shape;
 
         // the cube that will be placed by default
-        Object cube_default;
-        Object adjusted_cube_default;
+        Cube cube_default;
+        Cube adjusted_cube_default;
 
         const char* filter_patterns[1] = {"*.tfobj_dev"};
         const char* export_filter_patterns[1] = {"*.tfobj"};

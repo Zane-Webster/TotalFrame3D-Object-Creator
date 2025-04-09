@@ -36,7 +36,7 @@ void Shape::SetSymmetryPositions(glm::vec3 position) {
 }
 
 void Shape::Clear() {
-    object = Object();
+    cube = Cube();
     type = TotalFrame::SHAPE_TYPE::SHAPE_NONE;
     symmetry_type = TotalFrame::SYMMETRY_TYPE::SYMMETRY_NONE;
     positions = {};
