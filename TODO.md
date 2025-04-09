@@ -1,3 +1,6 @@
+#TotalFrame3D Object Creator
+## TO DO:
+
 **BIG:**</br>
 - add skybox properties with tile objects
 - create docs
