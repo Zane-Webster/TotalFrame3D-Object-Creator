@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <map>
 
 #include <string>
 
@@ -44,6 +45,9 @@ class ObjectHandler {
         std::string GetData();
         std::string GetTrueData();
 
+        //////// EXPORTATION
+        std::string GetExportData();
+
         //////// OBJECT CREATION
         // creates an object
         void Create(std::string name, glm::vec3 position, TotalFrame::OBJECT_TYPE type, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
@@ -52,7 +56,6 @@ class ObjectHandler {
         void Add(Object object);
 
         void CreateShape(Shape shape);
-
 
         //////// OBJECT DESTRUCTION
         void Destory(Object* object);

@@ -42,6 +42,18 @@ std::string ObjectHandler::GetTrueData() {
 }
 
 //=============================
+// EXPORTATION FUNCTIONS
+//=============================
+std::string ObjectHandler::GetExportData() {
+    std::string temp_data = "";
+    for (auto object : objects) {
+        temp_data += object.GetExportData();
+    }
+    return temp_data;
+}
+
+
+//=============================
 // CREATION FUNCTIONS
 //=============================
 

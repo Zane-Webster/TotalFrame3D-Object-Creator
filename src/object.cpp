@@ -31,9 +31,7 @@ void Object::Create(std::string p_name, glm::vec3 p_position, TotalFrame::OBJECT
 
     // if position is being read from file, read from file then set position, otherwise set defined position
     if (p_position == TotalFrame::READ_POS_FROM_FILE) Object::SetPositionNoTriangles(temp_position);
-    else {
-        Object::SetPosition(p_position);
-    }
+    else Object::SetPosition(p_position);
 
     // adjust for aspect_ratio (vertices are updated in Object::_Read())
     size.y *= aspect_ratio;
@@ -120,6 +118,22 @@ void Object::Verify() {
             }
         }
     }
+}
+
+//=============================
+// EXPORTATION FUNCTIONS
+//=============================
+std::string Object::GetExportData() {
+    std::string temp_data = "";
+    // get vertices data
+    for (auto [sp, triangles_i] : triangles) {
+        for (auto triangle : triangles_i) {
+            temp_data += triangle.GetData();
+            temp_data += '\n';
+        } 
+    }
+
+    return temp_data;
 }
 
 //=============================
@@ -470,32 +484,38 @@ std::vector<Triangle> Object::_CreateFromStr(std::string object_data_str, glm::v
 //=============================
 
 void Object::_BuildRenderLines() {
-    // update the VBO with new line data
-    glBindVertexArray(lines_vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * lines_vertices.size(), lines_vertices.data());
-    glBindVertexArray(0);
+    if (type != TotalFrame::OBJECT_TYPE::TILE_OBJ) {
+        // update the VBO with new line data
+        glBindVertexArray(lines_vertex_array);
+        glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * lines_vertices.size(), lines_vertices.data());
+        glBindVertexArray(0);
+    }
 }
 
 void Object::_BuildLines() {
-    // generate line vertex buffer and array
-    glGenVertexArrays(1, &lines_vertex_array);
-    glGenBuffers(1, &lines_vertex_buffer);
+    if (type != TotalFrame::OBJECT_TYPE::TILE_OBJ) {
+        // generate line vertex buffer and array
+        glGenVertexArrays(1, &lines_vertex_array);
+        glGenBuffers(1, &lines_vertex_buffer);
 
-    glBindVertexArray(lines_vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
+        glBindVertexArray(lines_vertex_array);
+        glBindBuffer(GL_ARRAY_BUFFER, lines_vertex_buffer);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * lines_vertices.size(), nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * lines_vertices.size(), nullptr, GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+        glBindVertexArray(0);
+    }
 }
 
 void Object::_RenderLines() {
-    glBindVertexArray(lines_vertex_array);
-    glDrawArrays(GL_LINES, 0, lines_vertices.size());
-    glBindVertexArray(0);
+    if (type != TotalFrame::OBJECT_TYPE::TILE_OBJ) {
+        glBindVertexArray(lines_vertex_array);
+        glDrawArrays(GL_LINES, 0, lines_vertices.size());
+        glBindVertexArray(0);
+    }
 }
 
 //=============================

@@ -42,7 +42,7 @@ class Object {
 
         //////// BASIC ATTRIBUTES
         std::string name = "";
-        TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::BASIC_OBJ;
+        TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::CUBE_OBJ;
         GLuint shader_program = 0;
         glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
         glm::vec3 true_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
@@ -58,6 +58,9 @@ class Object {
         std::string GetData();
         std::string GetTrueData();
         void Verify();
+
+        //////// EXPORTATION FUNCTIONS
+        std::string GetExportData();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);

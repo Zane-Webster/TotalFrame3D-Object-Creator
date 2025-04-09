@@ -31,8 +31,9 @@ class TotalFrame {
         };
         
         enum OBJECT_TYPE {
-            BASIC_OBJ, // POSITION AND COLOR
-            TEXTURE_OBJ // POSITION AND TEXTURE
+            CUBE_OBJ,
+            TILE_OBJ,
+            TEXTURE_OBJ
         };
 
         enum SHAPE_TYPE {

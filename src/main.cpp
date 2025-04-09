@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", 60.0f);
     AudioHandler audio_handler;
     ShaderHandler shader_handler(window_handler.context);
-    CameraHandler camera(glm::vec3(0.0f, 0.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
+    CameraHandler camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     ObjectHandler object_handler(window_handler.aspect_ratio);
     Creator creator(std::filesystem::current_path().string());
 
@@ -89,11 +89,11 @@ int main(int argc, char* argv[]) {
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
     GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
 
-    creator.SetCubeDefault(Object("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj", cube_sp, window_handler.aspect_ratio));
+    creator.SetCubeDefault(Object("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::CUBE_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj_dev", cube_sp, window_handler.aspect_ratio));
 
-    object_handler.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj", cube_sp);
+    object_handler.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::CUBE_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
 
-    BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj", block_cursor_sp, window_handler.aspect_ratio);
+    BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::CUBE_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj_dev", block_cursor_sp, window_handler.aspect_ratio);
 
     ////////// TEXT
 
@@ -204,27 +204,36 @@ int main(int argc, char* argv[]) {
                         ////////
 
                         if (SDL_GetModState() & SDL_KMOD_ALT) {
+                            //// SAVING
                             if (event.key.key == SDLK_S) {
-                                creator.Save(object_handler.GetData());
+                                creator.Save(object_handler.GetTrueData());
                                 window_handler.UpdateName();
                             }
+                            //// LOADING
                             if (event.key.key == SDLK_O) {
-                                if (*creator.GetName() != "untitled") creator.Save(object_handler.GetData());
+                                if (*creator.GetName() != "untitled") creator.Save(object_handler.GetTrueData());
                                 std::string loaded_object_path = creator.Load();
                                 if (loaded_object_path != "\n") {
-                                    object_handler.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
+                                    object_handler.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::CUBE_OBJ, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
                             }
+                            //// NEW OBJECT
                             if (event.key.key == SDLK_N) {
-                                if (*creator.GetName() != "untitled") creator.Save(object_handler.GetData());
+                                if (*creator.GetName() != "untitled") creator.Save(object_handler.GetTrueData());
                                 if (creator.NewObject()) {
-                                    object_handler.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::BASIC_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj", cube_sp);
+                                    object_handler.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::OBJECT_TYPE::CUBE_OBJ, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
                             }
+                            //// EXPORT
+                            if (event.key.key == SDLK_E) {
+                                creator.Export(object_handler.GetExportData());
+                            }
+
+                            //// SYMMETRY TOGGLE
                             if (event.key.key == SDLK_1) {
                                 creator.ToggleSymmetry(creator.GetCubeDefault(), TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
                             }

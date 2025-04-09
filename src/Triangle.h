@@ -39,7 +39,7 @@ class Triangle {
         void RenderOutline();
         std::string GetData();
         std::string GetTrueData();
-
+        
         //////// MOVEMENT FUNCTIONS
         void SetPosition(glm::vec3 position, float aspect_ratio);
         void ResetTruePosition();

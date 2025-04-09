@@ -47,6 +47,9 @@ class Creator {
         void Save(std::string object_data);
         bool NewObject();
 
+        void Export(std::string object_data);
+        bool NewExport();
+
         //////// LOADING FUNCTIONS
         std::string Load();
 
@@ -64,7 +67,8 @@ class Creator {
         Object cube_default;
         Object adjusted_cube_default;
 
-        const char* filter_patterns[1] = {"*.tfobj"};
+        const char* filter_patterns[1] = {"*.tfobj_dev"};
+        const char* export_filter_patterns[1] = {"*.tfobj"};
 };
 
 #endif // SRC_CREATOR_H_

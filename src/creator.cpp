@@ -93,7 +93,37 @@ void Creator::Save(std::string object_data) {
 }
 
 bool Creator::NewObject() {
-    const char * temp_path = tinyfd_saveFileDialog("New TotalFrame Object", ".tfobj", 1, filter_patterns, "TotalFrame Object File *.tfobj");
+    const char * temp_path = tinyfd_saveFileDialog("New TotalFrame Development Object", ".tfobj_dev", 1, filter_patterns, "TotalFrame Development Object File *.tfobj_dev");
+    if (temp_path == NULL) {
+        return false;
+    }
+
+    object_path = temp_path;
+
+    std::filesystem::path temp_fs_path = object_path;
+    *object_name = temp_fs_path.filename().string();
+
+    return true;
+}
+
+void Creator::Export(std::string object_data) {
+    // if untitled (not yet saved), create a new object. if the user exits, cancel save and return
+    if (*object_name == "untitled") if (!Creator::NewObject()) return;
+
+    std::ofstream out_file(object_path, std::ios::out | std::ios::trunc);
+
+    if (!out_file) {
+        Util::ThrowError("FAILED TO OPEN FILE", "Creator::Export");
+        return;
+    }
+
+    out_file << object_data;
+
+    out_file.close();
+}
+
+bool Creator::NewExport() {
+    const char * temp_path = tinyfd_saveFileDialog("New TotalFrame Object", ".tfobj", 1, export_filter_patterns, "TotalFrame Object File *.tfobj");
     if (temp_path == NULL) {
         return false;
     }
@@ -111,7 +141,7 @@ bool Creator::NewObject() {
 //=============================
 
 std::string Creator::Load() {
-    const char* temp_path = tinyfd_openFileDialog("Load TotalFrame Object", objects_path.c_str(), 1, filter_patterns, "TotalFrame Object File *.tfobj", 0);
+    const char* temp_path = tinyfd_openFileDialog("Load TotalFrame Development Object", objects_path.c_str(), 1, filter_patterns, "TotalFrame Development Object File *.tfobj_dev", 0);
     if (temp_path == NULL) {
         return "\n";
     }
