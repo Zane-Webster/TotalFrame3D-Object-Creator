@@ -23,7 +23,7 @@
 
 class Creator {
     public:
-        Creator(std::string objects_path);
+        Creator(std::string objects_path, std::string exports_path);
 
         //////// BASIC ATTRIBUTES
         glm::vec4 color = glm::vec4(1.0f);
@@ -58,6 +58,7 @@ class Creator {
 
     private:
         std::string objects_path = "";
+        std::string exports_path = "";
         std::string object_path = "";
         std::shared_ptr<std::string> object_name = std::make_shared<std::string>("untitled");
 

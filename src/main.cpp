@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     ObjectHandler object_handler(window_handler.aspect_ratio);
-    Creator creator(std::filesystem::current_path().string());
+    Creator creator(std::filesystem::current_path().string() + "/objects", std::filesystem::current_path().string() + "/export");
 
     window_handler.PassNamePtr(creator.GetName());
 

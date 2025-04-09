@@ -4,7 +4,7 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-Creator::Creator(std::string p_objects_path) : objects_path(p_objects_path) {
+Creator::Creator(std::string p_objects_path, std::string p_exports_path) : objects_path(p_objects_path), exports_path(p_exports_path) {
 
 }
 
@@ -108,9 +108,9 @@ bool Creator::NewObject() {
 
 void Creator::Export(std::string object_data) {
     // if untitled (not yet saved), create a new object. if the user exits, cancel save and return
-    if (*object_name == "untitled") if (!Creator::NewObject()) return;
+    if (!Creator::NewExport()) return;
 
-    std::ofstream out_file(object_path, std::ios::out | std::ios::trunc);
+    std::ofstream out_file(exports_path, std::ios::out | std::ios::trunc);
 
     if (!out_file) {
         Util::ThrowError("FAILED TO OPEN FILE", "Creator::Export");
@@ -128,10 +128,9 @@ bool Creator::NewExport() {
         return false;
     }
 
-    object_path = temp_path;
+    exports_path = temp_path;
 
-    std::filesystem::path temp_fs_path = object_path;
-    *object_name = temp_fs_path.filename().string();
+    std::filesystem::path temp_fs_path = exports_path;
 
     return true;
 }
