@@ -29,7 +29,7 @@ Creates OpenGL context. Can be accesed by direct reference with window_handler.c
 class WindowHandler {
     public:
         ////////// DEFAULT CONSTRUCTOR
-        WindowHandler(Uint16 window_width, Uint16 window_height, SDL_FColor window_color, std::string window_title, float target_fps = 60.0f);
+        WindowHandler(Uint16 window_width, Uint16 window_height, SDL_FColor window_color, std::string window_title, bool vsync, float target_fps = 60.0f);
         ~WindowHandler();
 
         ////////// BASICS

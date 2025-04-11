@@ -27,7 +27,7 @@ void Cube::Create(std::string p_name, glm::vec3 p_position, float p_size, std::s
     glm::vec3 temp_position = glm::vec3(0.0f);
 
     Cube::Load(p_path, temp_position, data_str);
-
+    
     // if position is being read from file, read from file then set position, otherwise set defined position
     if (p_position == TotalFrame::READ_POS_FROM_FILE) Cube::SetPositionNoTriangles(temp_position);
     else Cube::SetPosition(p_position);
@@ -454,8 +454,9 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
 
             for (auto letter : line) {
                 if (letter == ' ') {
-                    temp_vertices.push_back(std::stof(temp_number_str_vertices));
-                    temp_true_vertices.push_back(std::stof(temp_number_str_vertices));
+                    GLfloat value = std::stof(temp_number_str_vertices);
+                    temp_vertices.push_back(value);
+                    temp_true_vertices.push_back(value);
 
                     // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
                     if (temp_vertices.size() == 2 || temp_vertices.size() == 8 || temp_vertices.size() == 14) temp_vertices.back() *= aspect_ratio;
@@ -466,14 +467,16 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
                 temp_number_str_vertices += letter;
             }
 
-            temp_vertices.push_back(std::stof(temp_number_str_vertices));
-            temp_true_vertices.push_back(std::stof(temp_number_str_vertices));
-
+            GLfloat value = std::stof(temp_number_str_vertices);
+            temp_vertices.push_back(value);
+            temp_true_vertices.push_back(value);
+            
             temp_triangles.push_back(Triangle(temp_vertices, temp_true_vertices));
         }
         first_line = false;
     }
 
+    
     p_position_out = position_out;
     return temp_triangles;
 }

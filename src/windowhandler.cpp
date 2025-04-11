@@ -4,7 +4,7 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::string p_title, float p_target_fps) 
+WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::string p_title, bool vsync, float p_target_fps) 
                             : width(p_w), height(p_h), color(p_color), title(p_title), target_fps(p_target_fps) {
 
     // INIT OPENGL
@@ -19,8 +19,8 @@ WindowHandler::WindowHandler(Uint16 p_w, Uint16 p_h, SDL_FColor p_color, std::st
     context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, context);
 
-    // Use Vsync
-    SDL_GL_SetSwapInterval(1);
+    // Vsync
+    if (vsync) SDL_GL_SetSwapInterval(1);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) Util::ThrowError("GLEW NOT INITIALIZED PROPERLY", "windowhandler");

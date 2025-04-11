@@ -81,8 +81,8 @@ void Object::Add(Cube cube) {
 }
 
 void Object::CreateShape(Shape shape) {
+    //FIXME: using shape.cube.path means color isn't updated. using shape.GetData() means position isn't properly changed
     for (auto position : shape.positions) {
-        // create from object path because object.GetData() updates file position which messes things up
         Object::Create(shape.cube.name, position, shape.cube.size[0], shape.cube.path, shape.cube.shader_program);
     }
 } 

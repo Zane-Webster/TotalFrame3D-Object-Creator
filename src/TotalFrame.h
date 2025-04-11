@@ -22,6 +22,7 @@ Contains TotalFrame structs
 
 using TF_MOVEMENT_KEYSET = std::array<SDL_Keycode, 6>;
 using TF_TRIANGLE_VERTICES = std::array<GLfloat, 18>;
+using TF_TRIANGLE_VERTICES_WITH_NORMAL = std::array<GLfloat, 27>;
 
 class TotalFrame {
     public:
@@ -64,6 +65,19 @@ class TotalFrame {
 
         static constexpr float TRIANGLE_SIZE = 0.1f;
         static constexpr glm::vec3 READ_POS_FROM_FILE = glm::vec3(-1000.0f);
+
+        struct Material {
+            Material(glm::vec3 p_ambient, glm::vec3 p_diffuse, glm::vec3 p_specular, GLfloat p_shininess) : ambient(p_ambient), diffuse(p_diffuse), specular(p_specular), shininess(p_shininess) {
+                ;
+            }
+
+            glm::vec3 ambient = {};
+            glm::vec3 diffuse = {};
+            glm::vec3 specular = {};
+            GLfloat shininess = 0.0f;
+
+            Material() = default;
+        };
 
         struct MoveQueue {
             MoveQueue(TotalFrame::KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {

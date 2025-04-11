@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     TTF_Init();
 
     ////////// APP HANDLERS
-    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", 60.0f);
+    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", false, 60.0f);
     AudioHandler audio_handler;
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
     GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
 
-    Object test_object(TotalFrame::OBJECT_TYPE::CUBE_OBJ, window_handler.aspect_ratio);
+    Object object(TotalFrame::OBJECT_TYPE::CUBE_OBJ, window_handler.aspect_ratio);
 
     creator.SetCubeDefault(Cube("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj_dev", cube_sp, window_handler.aspect_ratio));
 
-    test_object.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
+    object.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
 
     BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj_dev", block_cursor_sp, window_handler.aspect_ratio);
 
@@ -140,13 +140,13 @@ int main(int argc, char* argv[]) {
                             //// CHECK IF HITTING CUBE FACE
                             glm::vec3 face_hit_pos;
                             //// GET FIRST CUBE HIT
-                            mouse_cube = test_object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                            mouse_cube = object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
                             block_cursor.PlaceOnFace(mouse_cube.GetTTPosition(), face_hit_pos);
                         
                             if (block_cursor.visible) {
                                 creator.UpdateCubeDefaultPosition(block_cursor.NextCubePosition());
-                                if (creator.GetShape().type == TotalFrame::SHAPE_TYPE::SHAPE_NONE) test_object.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetTrueData());
-                                else test_object.CreateShape(creator.GetShape());
+                                if (creator.GetShape().type == TotalFrame::SHAPE_TYPE::SHAPE_NONE) object.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetTrueData());
+                                else object.CreateShape(creator.GetShape());
                                 window_handler.NeedRender();
                             }
                         }
@@ -155,10 +155,10 @@ int main(int argc, char* argv[]) {
                             //// CHECK IF HITTING CUBE FACE
                             glm::vec3 face_hit_pos;
                             //// GET FIRST CUBE HIT
-                            mouse_cube = test_object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                            mouse_cube = object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
                         
                             if (face_hit_pos != glm::vec3(-1000.0f)) {
-                                test_object.Destory(test_object.GetRayCollidingCubeWithFacePtr(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos));
+                                object.Destory(object.GetRayCollidingCubeWithFacePtr(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos));
                                 window_handler.NeedRender();
                             }
                         }
@@ -174,6 +174,7 @@ int main(int argc, char* argv[]) {
                             camera.StartMouseMove(mouse_x, mouse_y);
                         }
                         break;
+
                     case SDL_EVENT_MOUSE_MOTION:
                         SDL_GetMouseState(&mouse_x, &mouse_y);
 
@@ -183,7 +184,7 @@ int main(int argc, char* argv[]) {
                         
                         //// FACE TESTING
                         glm::vec3 face_hit_pos;
-                        mouse_cube = test_object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                        mouse_cube = object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
                         block_cursor.PlaceOnFace(mouse_cube.GetTTPosition(), face_hit_pos);
 
                         if (event.motion.state && SDL_BUTTON_MMASK) {
@@ -191,6 +192,7 @@ int main(int argc, char* argv[]) {
                             if (camera.UpdateMouseMovement(mouse_x, mouse_y)) window_handler.NeedRender();
                         }
                         break;
+
                     case SDL_EVENT_MOUSE_BUTTON_UP:
                         if (event.button.button == SDL_BUTTON_MIDDLE) {
                             camera.StopMouseMove();
@@ -207,16 +209,16 @@ int main(int argc, char* argv[]) {
                         if (SDL_GetModState() & SDL_KMOD_ALT) {
                             //// SAVING
                             if (event.key.key == SDLK_S) {
-                                creator.Save(test_object.GetTrueData());
+                                creator.Save(object.GetTrueData());
                                 window_handler.UpdateName();
                             }
 
                             //// LOADING
                             if (event.key.key == SDLK_O) {
-                                if (*creator.GetName() != "untitled") creator.Save(test_object.GetTrueData());
+                                if (*creator.GetName() != "untitled") creator.Save(object.GetTrueData());
                                 std::string loaded_object_path = creator.Load();
                                 if (loaded_object_path != "\n") {
-                                    test_object.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
+                                    object.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
@@ -224,9 +226,9 @@ int main(int argc, char* argv[]) {
 
                             //// NEW OBJECT
                             if (event.key.key == SDLK_N) {
-                                if (*creator.GetName() != "untitled") creator.Save(test_object.GetTrueData());
+                                if (*creator.GetName() != "untitled") creator.Save(object.GetTrueData());
                                 if (creator.NewObject()) {
-                                    test_object.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
+                                    object.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
@@ -234,7 +236,7 @@ int main(int argc, char* argv[]) {
 
                             //// EXPORT
                             if (event.key.key == SDLK_M) {
-                                creator.Export(test_object.GetExportData());
+                                creator.Export(object.GetExportData());
                             }
                             
                             //// ROTATE CAMERA LEFT
@@ -274,6 +276,7 @@ int main(int argc, char* argv[]) {
                             }
                         }
                         break;
+
                     case SDL_EVENT_KEY_UP:
                         for (auto movement_key : movement_keys) {
                             if (event.key.key == movement_key) {
@@ -295,13 +298,13 @@ int main(int argc, char* argv[]) {
             if (window_handler.StartRender()) {
                 window_handler.Clear();
 
-                camera.UpdateShaderPrograms(test_object.GetShaderProgramsUpdates());
-                test_object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position);
+                camera.UpdateShaderPrograms(object.GetShaderProgramsUpdates());
+                object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position);
 
                 // update block_cursor seperate so it doesn't get saved to tfobj file
                 if (block_cursor.visible) {
                     camera.UpdateShaderPrograms({block_cursor_sp});
-                    test_object.UpdateAndRender(block_cursor.cube, camera.GetViewProjectionMatrix(), camera.position);
+                    object.UpdateAndRender(block_cursor.cube, camera.GetViewProjectionMatrix(), camera.position);
                 }
 
                 window_handler.Update();
@@ -312,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     ////////// MEMORY MANAGEMENT
     audio_handler.FreeAll();
-    test_object.FreeAll();
+    object.FreeAll();
 
     SDL_Quit();
     Mix_Quit();

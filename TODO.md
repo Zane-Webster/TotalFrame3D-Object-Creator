@@ -3,13 +3,15 @@
 ## TO DO:
 
 **BIG:**</br>
+- multithreading
+- add lighting
 - add skybox properties with tile objects
 - create docs
 
 **MEDIUM:**</br>
 - fix color in shapes due to reading obj_path instead of obj_data
 - camera rotation keys
-- object_handler rotation
+- object rotation
 
 **SMALL:**</br>
 - color picker

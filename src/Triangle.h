@@ -39,10 +39,13 @@ class Triangle {
         void RenderOutline();
         std::string GetData();
         std::string GetTrueData();
+
+        //////// NORMAL FUNCTIONS
+        void UpdateNormal();
+        void UpdateFullVertices();
         
         //////// MOVEMENT FUNCTIONS
         void SetPosition(glm::vec3 position, float aspect_ratio);
-        void ResetTruePosition();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
@@ -51,6 +54,10 @@ class Triangle {
         std::shared_ptr<TF_TRIANGLE_VERTICES> vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
         std::shared_ptr<TF_TRIANGLE_VERTICES> true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
         std::shared_ptr<TF_TRIANGLE_VERTICES> translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
+
+        glm::vec3 normal = glm::vec3(0.0f);
+        std::shared_ptr<TF_TRIANGLE_VERTICES_WITH_NORMAL> full_vertices = std::make_shared<TF_TRIANGLE_VERTICES_WITH_NORMAL>();
+        
         GLuint vertex_array = 0;
         GLuint vertex_buffer = 0;
 };
