@@ -29,7 +29,7 @@ void Cube::Create(std::string p_name, glm::vec3 p_position, float p_size, std::s
     Cube::Load(p_path, temp_position, data_str);
     
     // if position is being read from file, read from file then set position, otherwise set defined position
-    if (p_position == TotalFrame::READ_POS_FROM_FILE) Cube::SetPositionNoTriangles(temp_position);
+    if (p_position == TotalFrame::READ_POS_FROM_FILE) Cube::SetPosition(temp_position);
     else Cube::SetPosition(p_position);
 
     // adjust for aspect_ratio (vertices are updated in Cube::_Read())
@@ -49,16 +49,21 @@ void Cube::Load(std::string path, glm::vec3& p_position_out, std::string data_st
     p_position_out = position_out;
 }
 
-void Cube::Render() {
+void Cube::Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights) {
     Cube::_BuildRenderLines();
 
     // render all triangles
     for (auto [shader_program, triangles_i] : triangles) {
         glUseProgram(shader_program);
 
-        // set model matrix
-        GLuint model_location = glGetUniformLocation(shader_program, "model_matrix");
-        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model_matrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader_program, "model_matrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
+
+        glUniform3fv(glGetUniformLocation(shader_program, "light_position"), 1, glm::value_ptr(lights[0]->position));
+        glUniform1f(glGetUniformLocation(shader_program, "light_intensity"), lights[0]->intensity);
+        glUniform3fv(glGetUniformLocation(shader_program, "view_position"), 1, glm::value_ptr(camera_position));
+
+        // set normal matrix
+        glUniformMatrix3fv(glGetUniformLocation(shader_program, "normal_matrix"), 1, GL_FALSE, glm::value_ptr(normal_matrix));
 
         for (auto triangle : triangles_i) {
             triangle.Render();
@@ -152,6 +157,8 @@ void Cube::SetColor(glm::vec3 color) {
 //=============================
 
 void Cube::UpdatePosition(glm::vec3 camera_position) {
+    normal_matrix = glm::transpose(glm::inverse(glm::mat3(model_matrix)));
+
     // find distance from camera to cube
     float distance = glm::length(position - camera_position);
 
@@ -227,16 +234,6 @@ glm::vec3 Cube::GetTTPosition() {
 }
 
 void Cube::SetPosition(glm::vec3 p_position) {
-    Cube::SetPositionNoTriangles(p_position);
-
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
-            triangle.SetPosition(translated_true_position, aspect_ratio);
-        }
-    }
-}
-
-void Cube::SetPositionNoTriangles(glm::vec3 p_position) {
     translated_true_model_matrix[3][0] = p_position[0];
     translated_true_model_matrix[3][1] = p_position[1];
     translated_true_model_matrix[3][2] = p_position[2];

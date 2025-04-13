@@ -39,11 +39,12 @@ class Object {
         void FreeAll();
 
         //////// BASIC ATTRIBUTES
+        glm::vec3 position = glm::vec3(0.0f);
         TotalFrame::OBJECT_TYPE type = TotalFrame::OBJECT_TYPE::CUBE_OBJ;
 
         //////// BASIC
-        void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
-        void UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position);
+        void UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights);
+        void UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights);
 
         std::string GetData();
         std::string GetTrueData();
@@ -54,6 +55,7 @@ class Object {
         //////// CUBE CREATION
         // creates a cube
         void Create(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
+        void CreateLight(std::shared_ptr<TotalFrame::Light> light, std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program, std::string object_data_str = "");
         void ClearAndCreate(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program);
         // adds a pre-created cube
         void Add(Cube cube);
@@ -62,6 +64,10 @@ class Object {
 
         //////// CUBE DESTRUCTION
         void Destory(Cube* cube);
+
+        //////// TRANSLATION
+        void Rotate(glm::vec3 rotation, glm::vec3 camera_position);
+        void Translate(glm::vec3 translation);
 
         //////// SHADER PROGRAMS
         // updates a shader program if it needs updated
@@ -78,9 +84,12 @@ class Object {
         Cube* GetRayCollidingCubeWithFacePtr(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
         std::vector<std::shared_ptr<Cube>> GetRayCollidingCubes(TotalFrame::Ray ray);
 
+        //////// LIGHTING
+        void AttachLight(std::shared_ptr<TotalFrame::Light> light);
+
         //////// RENDERING
         // renders an cube if it is in view
-        void Render(Cube cube, bool is_visible);
+        void Render(Cube cube, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights, bool is_visible);
 
     private:
         //////// FILE READING FUNCTIONS
@@ -93,6 +102,9 @@ class Object {
         std::unordered_map<GLuint, std::vector<Cube>> shader_program_groups = {};
         // says which shader_programs need to be updated
         std::unordered_map<GLuint, bool> shader_programs_need_update = {};
+
+        //////// LIGHTING
+        std::shared_ptr<TotalFrame::Light> light = nullptr;
 
         float aspect_ratio = 1.778f;
 

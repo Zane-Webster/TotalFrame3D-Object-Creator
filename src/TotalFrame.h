@@ -79,6 +79,18 @@ class TotalFrame {
             Material() = default;
         };
 
+        struct Light {
+            Light(glm::vec3 p_position, glm::vec3 p_color, GLfloat p_intensity) : position(p_position), color(p_color), intensity(p_intensity) {
+                ;
+            }
+
+            glm::vec3 position = glm::vec3(0.0f);
+            glm::vec3 color = glm::vec3(0.0f);
+            GLfloat intensity = 1.0f;
+
+            Light() = default;
+        };
+
         struct MoveQueue {
             MoveQueue(TotalFrame::KEYSET p_movement_keyset) : movement_keyset(p_movement_keyset) {
                 UpdateKeyset();

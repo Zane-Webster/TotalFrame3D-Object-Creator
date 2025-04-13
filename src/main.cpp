@@ -37,6 +37,7 @@ ZANE WEBSTER
 #include "AudioHandler.h"
 #include "ShaderHandler.h"
 #include "CameraHandler.h"
+#include "LightHandler.h"
 #include "Triangle.h"
 #include "Cube.h"
 #include "Object.h"
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
     ShaderHandler shader_handler(window_handler.context);
     CameraHandler camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     Creator creator(std::filesystem::current_path().string() + "/../objects", std::filesystem::current_path().string() + "/../export");
+    LightHandler light_handler;
 
     window_handler.PassNamePtr(creator.GetName());
 
@@ -93,6 +95,8 @@ int main(int argc, char* argv[]) {
     creator.SetCubeDefault(Cube("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj_dev", cube_sp, window_handler.aspect_ratio));
 
     object.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
+
+    light_handler.Create(glm::vec3(0.5f, 1.2f, 1.0f), glm::vec3(1.0f), 2.0f);
 
     BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj_dev", block_cursor_sp, window_handler.aspect_ratio);
 
@@ -299,12 +303,12 @@ int main(int argc, char* argv[]) {
                 window_handler.Clear();
 
                 camera.UpdateShaderPrograms(object.GetShaderProgramsUpdates());
-                object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position);
+                object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position, light_handler.lights);
 
                 // update block_cursor seperate so it doesn't get saved to tfobj file
                 if (block_cursor.visible) {
                     camera.UpdateShaderPrograms({block_cursor_sp});
-                    object.UpdateAndRender(block_cursor.cube, camera.GetViewProjectionMatrix(), camera.position);
+                    object.UpdateAndRender(block_cursor.cube, camera.GetViewProjectionMatrix(), camera.position, light_handler.lights);
                 }
 
                 window_handler.Update();

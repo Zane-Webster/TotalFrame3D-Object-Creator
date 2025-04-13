@@ -53,7 +53,7 @@ class Cube {
         //////// BASIC FUNCTIONS
         void Create(std::string name, glm::vec3 position, float size, std::string path, GLuint shader_program, float aspect_ratio, std::string data_str = "");
         void Load(std::string path, glm::vec3& position_out, std::string data_str = "");
-        void Render();
+        void Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights);
         std::string GetData();
         std::string GetTrueData();
         void Verify();
@@ -69,7 +69,6 @@ class Cube {
         glm::vec3 GetPosition();
         glm::vec3 GetTTPosition();
         void SetPosition(glm::vec3 position);
-        void SetPositionNoTriangles(glm::vec3 position);
 
         bool IsVisible(glm::mat4 view_projection_matrix);
 
@@ -104,6 +103,8 @@ class Cube {
         glm::mat4 model_matrix = glm::mat4(1.0f);
         glm::mat4 true_model_matrix = glm::mat4(1.0f);
         glm::mat4 translated_true_model_matrix = glm::mat4(1.0f);
+
+        glm::mat3 normal_matrix = glm::mat3(0.0f);
 
         //////// OBB ATTRIBUTES
         glm::vec3 half_size = glm::vec3(0.0f);

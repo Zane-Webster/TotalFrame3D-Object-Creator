@@ -11,17 +11,17 @@ Object::Object(TotalFrame::OBJECT_TYPE p_type, float p_aspect_ratio) : type(p_ty
 // BASIC FUNCTIONS
 //=============================
 
-void Object::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position) {
+void Object::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights) {
     for (auto cube : cubes) {
-        Object::UpdateAndRender(cube, camera_view_projection_matrix, camera_position);
+        Object::UpdateAndRender(cube, camera_view_projection_matrix, camera_position, lights);
     }
 }
 
-void Object::UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position) {
+void Object::UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights) {
     if (cube.IsVisible(camera_view_projection_matrix)) {
         Object::UpdateSP(cube, true);
         Object::UpdateCubeCameraScale(cube, camera_position, true);
-        Object::Render(cube, true);
+        Object::Render(cube, camera_position, lights, true);
     }
 }
 
@@ -64,6 +64,11 @@ void Object::Create(std::string name, glm::vec3 position, float size, std::strin
     shader_programs_need_update[cubes.back().shader_program] = true;
 }
 
+void Object::CreateLight(std::shared_ptr<TotalFrame::Light> p_light, std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program, std::string object_data_str) {
+    Object::Create(name, position, size, obj_path, shader_program, object_data_str);
+    Object::AttachLight(p_light);
+}
+
 void Object::ClearAndCreate(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program) {
     cubes.clear();
 
@@ -98,6 +103,23 @@ void Object::Destory(Cube* p_cube) {
             cubes.erase(cubes.begin() + i);
             break;
         }
+    }
+}
+
+//=============================
+// TRANSLATION FUNCTIONS
+//=============================
+
+void Object::Translate(glm::vec3 translation) {
+    position += translation;
+    for (auto cube : cubes) {
+        cube.Translate(translation);
+    }
+}
+
+void Object::Rotate(glm::vec3 rotation, glm::vec3 camera_position) {
+    for (auto cube : cubes) {
+        //cube.Rotate(rotation, camera_position);
     }
 }
 
@@ -222,13 +244,22 @@ std::vector<std::shared_ptr<Cube>> Object::GetRayCollidingCubes(TotalFrame::Ray 
 }
 
 //=============================
+// LIGHTING FUNCTIONS
+//=============================
+
+void Object::AttachLight(std::shared_ptr<TotalFrame::Light> p_light) {
+    light = p_light;
+    light->position = position;
+}
+
+//=============================
 // RENDERING FUNCTIONS
 //=============================
 
-void Object::Render(Cube cube, bool is_visible) {
+void Object::Render(Cube cube, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights, bool is_visible) {
     // if visible, render
     if (is_visible){
-        cube.Render();
+        cube.Render(camera_position, lights);
     }
 }
 
