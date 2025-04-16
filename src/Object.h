@@ -47,7 +47,6 @@ class Object {
         void UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights);
 
         std::string GetData();
-        std::string GetTrueData();
 
         //////// EXPORTATION
         std::string GetExportData();

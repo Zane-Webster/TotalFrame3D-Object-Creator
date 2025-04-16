@@ -16,6 +16,11 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
     // default mouse posiition
     last_x = p_window_width / 2.0f;
     last_y = p_window_height / 2.0f;
+
+    CameraHandler::_UpdateMatrices();
+
+    projection_matrix = CameraHandler::_GetProjectionMatrix();
+    inverse_projection_matrix = glm::inverse(CameraHandler::_GetProjectionMatrix());
 }
 
 //=============================
@@ -23,7 +28,7 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
 //=============================
 
 glm::mat4 CameraHandler::GetViewProjectionMatrix() {
-    return _GetProjectionMatrix() * _GetViewMatrix();
+    return projection_matrix * view_matrix;
 }
 
 //=============================
@@ -33,15 +38,11 @@ glm::mat4 CameraHandler::GetViewProjectionMatrix() {
 void CameraHandler::UpdateShaderProgram(GLuint shader_program) {
     glUseProgram(shader_program);
 
-    // get view and projection matrices
-    glm::mat4 view = CameraHandler::_GetViewMatrix();
-    glm::mat4 projection = CameraHandler::_GetProjectionMatrix();
-
     // pass view and projection to shader program
     GLuint view_location = glGetUniformLocation(shader_program, "view");
     GLuint projection_location = glGetUniformLocation(shader_program, "projection");
-    glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view_matrix));
+    glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 }
 
 void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
@@ -72,6 +73,8 @@ bool CameraHandler::UpdateMovement() {
     if (move_queue.move_dir[2] == -1) position -= move_speed * front;
     // moving forward
     else if (move_queue.move_dir[2] == 1) position += move_speed * front;
+
+    CameraHandler::_UpdateMatrices();
 
     return true;
 }
@@ -110,6 +113,8 @@ bool CameraHandler::UpdateMouseMovement(float x, float y) {
 
     CameraHandler::_UpdateCameraDirections();
 
+    CameraHandler::_UpdateMatrices();
+
     last_x = x;
     last_y = y;
 
@@ -132,20 +137,16 @@ TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
     // get the ray in clip space
     glm::vec4 clip_space_ray(x, y, -1.0f, 1.0f);
 
-    // inverse of the projection and view matrices to get the ray in world space
-    glm::mat4 inverseProjection = glm::inverse(CameraHandler::_GetProjectionMatrix());
-    glm::mat4 inverseView = glm::inverse(CameraHandler::_GetViewMatrix());
-
     // transform to eye space, then to world space
     glm::vec4 eye_space_ray = glm::vec4(x, y, -1.0f, 1.0f);
-    eye_space_ray = inverseProjection * eye_space_ray;
+    eye_space_ray = inverse_projection_matrix * eye_space_ray;
     eye_space_ray.z = -1.0f; // keep direction pointing forward
     eye_space_ray.w = 0.0f;
 
     // transform from eye space to world space
-    glm::vec4 world_ray = inverseView * eye_space_ray;
+    glm::vec4 world_ray = inverse_view_matrix * eye_space_ray;
 
-    glm::vec3 cam_world_position = glm::vec3(glm::inverse(CameraHandler::_GetViewMatrix())[3]);
+    glm::vec3 cam_world_position = glm::vec3(inverse_view_matrix[3]);
 
     return TotalFrame::Ray(cam_world_position, glm::normalize(glm::vec3(world_ray))); 
 }
@@ -153,6 +154,11 @@ TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
 //=============================
 // PRIVATE FUNCTIONS
 //=============================
+
+void CameraHandler::_UpdateMatrices() {
+    view_matrix = CameraHandler::_GetViewMatrix();
+    inverse_view_matrix = glm::inverse(CameraHandler::_GetViewMatrix());
+}
 
 glm::mat4 CameraHandler::_GetViewMatrix() {
     return glm::lookAt(position, position + front, up);

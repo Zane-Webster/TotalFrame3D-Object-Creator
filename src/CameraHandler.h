@@ -58,6 +58,12 @@ class CameraHandler {
         float fov;
         float near_plane = 0.1f;
         float far_plane = 100.0f;
+        
+        glm::mat4 view_matrix = glm::mat4(1.0f);
+        glm::mat4 projection_matrix = glm::mat4(1.0f);
+
+        glm::mat4 inverse_view_matrix = glm::mat4(1.0f);
+        glm::mat4 inverse_projection_matrix = glm::mat4(1.0f);
 
         //////// MOVEMENT ATTRIBUTES
         // move speed of the camera keyboard
@@ -85,6 +91,7 @@ class CameraHandler {
         glm::vec3 up;
 
         //// OPENGL CAMERA FUNCTIONS
+        void _UpdateMatrices();
         glm::mat4 _GetViewMatrix();
         glm::mat4 _GetProjectionMatrix();
 

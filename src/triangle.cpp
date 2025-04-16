@@ -4,8 +4,8 @@
 // DEFAULT CONSTRUCTOR
 //=============================
 
-Triangle::Triangle(std::vector<GLfloat> p_vertices, std::vector<GLfloat> p_true_vertices) {
-    Triangle::LoadVertices(p_vertices, p_true_vertices);
+Triangle::Triangle(std::vector<GLfloat> p_vertices) {
+    Triangle::LoadVertices(p_vertices);
     Triangle::Build();
 }
 
@@ -18,17 +18,13 @@ bool Triangle::Verify() {
     return true;
 }
 
-void Triangle::LoadVertices(std::vector<GLfloat> p_vertices, std::vector<GLfloat> p_true_vertices) {
+void Triangle::LoadVertices(std::vector<GLfloat> p_vertices) {
     vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
-    true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
-    translated_true_vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
     full_vertices = std::make_shared<TF_TRIANGLE_VERTICES_WITH_NORMAL>();
     normal = glm::vec3(0.0f);
 
-    if (p_vertices.size() == 18 && p_true_vertices.size() == 18) {
+    if (p_vertices.size() == 18) {
         std::copy(p_vertices.begin(), p_vertices.end(), vertices->begin());
-        std::copy(p_true_vertices.begin(), p_true_vertices.end(), true_vertices->begin());
-        std::copy(p_true_vertices.begin(), p_true_vertices.end(), translated_true_vertices->begin());
         Triangle::UpdateFullVertices();
     }
 }
@@ -77,23 +73,11 @@ void Triangle::RenderOutline() {
 std::string Triangle::GetData() {
     std::string temp_data = "";
 
-    for (auto vertice : (*translated_true_vertices)) {
+    for (auto vertice : (*vertices)) {
         temp_data += std::to_string(vertice);
         temp_data += ' ';
     }
 
-    //get rid of the last space
-    temp_data.pop_back();
-    return temp_data;
-}
-
-std::string Triangle::GetTrueData() {
-    std::string temp_data = "";
-
-    for (auto vertice : (*true_vertices)) {
-        temp_data += std::to_string(vertice);
-        temp_data += ' ';
-    }
     //get rid of the last space
     temp_data.pop_back();
     return temp_data;
@@ -136,36 +120,6 @@ void Triangle::UpdateFullVertices() {
         (*full_vertices)[f_idx + 8] = normal.z;
     }
 }
-
-//=============================
-// MOVEMENT FUNCTIONS
-//=============================
-
-void Triangle::SetPosition(glm::vec3 position, float aspect_ratio) {
-    int stride = 6;
-    for (int i = 0; i < 3; i++) {
-        int vert_index = i * stride;
-
-        // Update translated_true_vertices (just x/y/z, not color)
-        (*translated_true_vertices)[vert_index + 0] = position.x + (*true_vertices)[vert_index + 0];
-        (*translated_true_vertices)[vert_index + 1] = position.y + (*true_vertices)[vert_index + 1];
-        (*translated_true_vertices)[vert_index + 2] = position.z + (*true_vertices)[vert_index + 2];
-
-        // Stretch y by aspect ratio
-        glm::vec3 stretched_pos = position;
-        stretched_pos.y *= aspect_ratio;
-
-        // Update vertices (also just x/y/z)
-        (*vertices)[vert_index + 0] = stretched_pos.x + (*true_vertices)[vert_index + 0];
-        (*vertices)[vert_index + 1] = stretched_pos.y + (*true_vertices)[vert_index + 1];
-        (*vertices)[vert_index + 2] = stretched_pos.z + (*true_vertices)[vert_index + 2];
-    }
-
-    Triangle::UpdateFullVertices();
-
-    Triangle::Build();
-}
-
 //=============================
 // COLOR FUNCTIONS
 //=============================
@@ -174,15 +128,7 @@ void Triangle::SetColor(glm::vec3 color) {
     int stride = 6;
     for (int i = 0; i < 3; i++) {
         int index = i * stride + 3; // +3 skips past x,y,z to get to r,g,b
-
-        (*translated_true_vertices)[index + 0] = color.r;
-        (*translated_true_vertices)[index + 1] = color.g;
-        (*translated_true_vertices)[index + 2] = color.b;
-
-        (*true_vertices)[index + 0] = color.r;
-        (*true_vertices)[index + 1] = color.g;
-        (*true_vertices)[index + 2] = color.b;
-
+        
         (*vertices)[index + 0] = color.r;
         (*vertices)[index + 1] = color.g;
         (*vertices)[index + 2] = color.b;

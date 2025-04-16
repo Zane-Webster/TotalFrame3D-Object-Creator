@@ -4,7 +4,6 @@
 
 **BIG:**</br>
 - multithreading
-- add lighting
 - add skybox properties with tile objects
 - create docs
 

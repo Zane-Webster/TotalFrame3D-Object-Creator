@@ -19,7 +19,6 @@ Cube::Cube(std::string p_name, glm::vec3 p_position, float p_size, std::string p
 void Cube::Create(std::string p_name, glm::vec3 p_position, float p_size, std::string p_path, GLuint p_shader_program, float p_aspect_ratio, std::string data_str) {
     name = p_name;
     size = glm::vec3(p_size);
-    true_size = glm::vec3(p_size);
     shader_program = p_shader_program;
     aspect_ratio = p_aspect_ratio;
     path = p_path;
@@ -27,15 +26,14 @@ void Cube::Create(std::string p_name, glm::vec3 p_position, float p_size, std::s
     glm::vec3 temp_position = glm::vec3(0.0f);
 
     Cube::Load(p_path, temp_position, data_str);
-    
+
     // if position is being read from file, read from file then set position, otherwise set defined position
     if (p_position == TotalFrame::READ_POS_FROM_FILE) Cube::SetPosition(temp_position);
     else Cube::SetPosition(p_position);
 
-    // adjust for aspect_ratio (vertices are updated in Cube::_Read())
-    size.y *= aspect_ratio;
+    *initial_model_matrix = *model_matrix;
 
-    Cube::UpdatePosition(glm::vec3(0.0f));
+    Cube::UpdateStretch();
 
     Cube::_BuildLines();
 }
@@ -56,28 +54,32 @@ void Cube::Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFr
     for (auto [shader_program, triangles_i] : triangles) {
         glUseProgram(shader_program);
 
-        glUniformMatrix4fv(glGetUniformLocation(shader_program, "model_matrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader_program, "model_matrix"), 1, GL_FALSE, glm::value_ptr(*stretched_model_matrix));
 
         glUniform3fv(glGetUniformLocation(shader_program, "light_position"), 1, glm::value_ptr(lights[0]->position));
         glUniform1f(glGetUniformLocation(shader_program, "light_intensity"), lights[0]->intensity);
         glUniform3fv(glGetUniformLocation(shader_program, "view_position"), 1, glm::value_ptr(camera_position));
 
         // set normal matrix
-        glUniformMatrix3fv(glGetUniformLocation(shader_program, "normal_matrix"), 1, GL_FALSE, glm::value_ptr(normal_matrix));
+        glUniformMatrix3fv(glGetUniformLocation(shader_program, "normal_matrix"), 1, GL_FALSE, glm::value_ptr(*normal_matrix));
 
         for (auto triangle : triangles_i) {
             triangle.Render();
         }
     }
     
+    glUniformMatrix4fv(glGetUniformLocation(shader_program, "model_matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
     Cube::_RenderLines();
 }
 
 std::string Cube::GetData() {
     std::string temp_data = "";
+
+    glm::vec3 temp_position = Cube::GetPosition();
+
     // get posiiton
     for (int i = 0; i < 3; i++) {
-        temp_data += std::to_string(translated_true_position[i]);
+        temp_data += std::to_string(temp_position[i]);
         temp_data += ' ';
     }
     temp_data.pop_back();
@@ -91,26 +93,6 @@ std::string Cube::GetData() {
         } 
     }
 
-    return temp_data;
-}
-
-std::string Cube::GetTrueData() {
-    std::string temp_data = "";
-    // get posiiton
-    for (int i = 0; i < 3; i++) {
-        temp_data += std::to_string(translated_true_position[i]);
-        temp_data += ' ';
-    }
-    temp_data.pop_back();
-    temp_data += '\n';
-
-    // get true vertices data
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
-            temp_data += triangle.GetTrueData();
-            temp_data += '\n';
-        }
-    }
     return temp_data;
 }
 
@@ -157,95 +139,86 @@ void Cube::SetColor(glm::vec3 color) {
 //=============================
 
 void Cube::UpdatePosition(glm::vec3 camera_position) {
-    normal_matrix = glm::transpose(glm::inverse(glm::mat3(model_matrix)));
+    glm::vec3 position = Cube::GetStretchedPosition();
 
     // find distance from camera to cube
     float distance = glm::length(position - camera_position);
 
-    // scale factor based on distance from cube. clamped to prevent extremes
-    float scale_factor = glm::clamp(distance * 0.1f, 0.5f, 5.0f);
-
     // scale transformation based on model matrix scaling
-    glm::vec3 scale_transformation = glm::vec3(
-        glm::length(glm::vec3(model_matrix[0][0], model_matrix[0][1], model_matrix[0][2])), // X scale
-        glm::length(glm::vec3(model_matrix[1][0], model_matrix[1][1], model_matrix[1][2])), // Y scale
-        glm::length(glm::vec3(model_matrix[2][0], model_matrix[2][1], model_matrix[2][2]))  // Z scale
+    glm::vec3 stretched_scale = glm::vec3(
+        glm::length(glm::vec3((*stretched_model_matrix)[0])),
+        glm::length(glm::vec3((*stretched_model_matrix)[1])),
+        glm::length(glm::vec3((*stretched_model_matrix)[2]))
     );
-    // combine for final scale amount
-    glm::vec3 final_scale = scale_transformation * scale_factor;
+    stretched_scale *= 0.5f;
+
+    glm::vec3 scale = glm::vec3(
+        glm::length(glm::vec3((*model_matrix)[0])),
+        glm::length(glm::vec3((*model_matrix)[1])),
+        glm::length(glm::vec3((*model_matrix)[2]))
+    );
+    scale *= 0.5f;
+    
     // rotate and scale the axes for obb
-    glm::mat3 rotation_matrix = glm::mat3(model_matrix);
+    glm::mat3 rotation_matrix = glm::mat3(*model_matrix);
     for (int i = 0; i < 3; i++) {
-        axes[i] = rotation_matrix[i] * final_scale[i];
+        axes[i] = rotation_matrix[i] * scale[i];
+        stretched_axes[i] = rotation_matrix[i] * stretched_scale[i];
     }
 
     // scale the camera size
-    camera_scaled_size = size * final_scale;
-    half_size = camera_scaled_size * 0.5f;
+    camera_scaled_size = size * scale;
+    stretched_camera_scaled_size = size * stretched_scale;
+
+    // scale the stretched half size
+    stretched_half_size = stretched_size * stretched_scale * 0.5f;
 
     // calculate corners of the cube
     corners = {
-        position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // min x, min y, min z
-        position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // max x, min y, min z
-        position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // max x, max y, min z
-        position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // min x, max y, min z
-        position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // min x, min y, max z
-        position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // max x, min y, max z
-        position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z), // max x, max y, max z
-        position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z)  // min x, max y, max z
+        position + rotation_matrix * glm::vec3(-stretched_camera_scaled_size.x, -stretched_camera_scaled_size.y, -stretched_camera_scaled_size.z), // min x, min y, min z
+        position + rotation_matrix * glm::vec3( stretched_camera_scaled_size.x, -stretched_camera_scaled_size.y, -stretched_camera_scaled_size.z), // max x, min y, min z
+        position + rotation_matrix * glm::vec3( stretched_camera_scaled_size.x,  stretched_camera_scaled_size.y, -stretched_camera_scaled_size.z), // max x, max y, min z
+        position + rotation_matrix * glm::vec3(-stretched_camera_scaled_size.x,  stretched_camera_scaled_size.y, -stretched_camera_scaled_size.z), // min x, max y, min z
+        position + rotation_matrix * glm::vec3(-stretched_camera_scaled_size.x, -stretched_camera_scaled_size.y,  stretched_camera_scaled_size.z), // min x, min y, max z
+        position + rotation_matrix * glm::vec3( stretched_camera_scaled_size.x, -stretched_camera_scaled_size.y,  stretched_camera_scaled_size.z), // max x, min y, max z
+        position + rotation_matrix * glm::vec3( stretched_camera_scaled_size.x,  stretched_camera_scaled_size.y,  stretched_camera_scaled_size.z), // max x, max y, max z
+        position + rotation_matrix * glm::vec3(-stretched_camera_scaled_size.x,  stretched_camera_scaled_size.y,  stretched_camera_scaled_size.z)  // min x, max y, max z
     };
 
-    std::vector<glm::vec3> lines_corners = {
-        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // min x, min y, min z
-        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y, -camera_scaled_size.z), // max x, min y, min z
-        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // max x, max y, min z
-        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y, -camera_scaled_size.z), // min x, max y, min z
-        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // min x, min y, max z
-        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x, -camera_scaled_size.y,  camera_scaled_size.z), // max x, min y, max z
-        true_position + rotation_matrix * glm::vec3( camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z), // max x, max y, max z
-        true_position + rotation_matrix * glm::vec3(-camera_scaled_size.x,  camera_scaled_size.y,  camera_scaled_size.z)  // min x, max y, max z
-    };
-
+    // set the line vertices based on corners
     lines_vertices = {
-        lines_corners[0], lines_corners[1], // min x, min y, min z -> max x, min y, min z
-        lines_corners[1], lines_corners[2], // max x, min y, min z -> max x, max y, min z
-        lines_corners[2], lines_corners[3], // max x, max y, min z -> min x, max y, min z
-        lines_corners[3], lines_corners[0], // min x, max y, min z -> min x, min y, min z
+        corners[0], corners[1], // min x, min y, min z -> max x, min y, min z
+        corners[1], corners[2], // max x, min y, min z -> max x, max y, min z
+        corners[2], corners[3], // max x, max y, min z -> min x, max y, min z
+        corners[3], corners[0], // min x, max y, min z -> min x, min y, min z
         
-        lines_corners[4], lines_corners[5], // min x, min y, max z -> max x, min y, max z
-        lines_corners[5], lines_corners[6], // max x, min y, max z -> max x, max y, max z
-        lines_corners[6], lines_corners[7], // max x, max y, max z -> min x, max y, max z
-        lines_corners[7], lines_corners[4], // min x, max y, max z -> min x, min y, max z
+        corners[4], corners[5], // min x, min y, max z -> max x, min y, max z
+        corners[5], corners[6], // max x, min y, max z -> max x, max y, max z
+        corners[6], corners[7], // max x, max y, max z -> min x, max y, max z
+        corners[7], corners[4], // min x, max y, max z -> min x, min y, max z
         
-        lines_corners[0], lines_corners[4], // min x, min y, min z -> min x, min y, max z
-        lines_corners[1], lines_corners[5], // max x, min y, min z -> max x, min y, max z
-        lines_corners[2], lines_corners[6], // max x, max y, min z -> max x, max y, max z
-        lines_corners[3], lines_corners[7]  // min x, max y, min z -> min x, max y, max z
+        corners[0], corners[4], // min x, min y, min z -> min x, min y, max z
+        corners[1], corners[5], // max x, min y, min z -> max x, min y, max z
+        corners[2], corners[6], // max x, max y, min z -> max x, max y, max z
+        corners[3], corners[7]  // min x, max y, min z -> min x, max y, max z
     };
 }
 
 
 glm::vec3 Cube::GetPosition() {
-    return glm::vec3(model_matrix[3][0], model_matrix[3][1], model_matrix[3][2]);
+    return glm::vec3((*model_matrix)[3][0], (*model_matrix)[3][1], (*model_matrix)[3][2]);
 }
 
-glm::vec3 Cube::GetTTPosition() {
-    return glm::vec3(translated_true_model_matrix[3][0], translated_true_model_matrix[3][1], translated_true_model_matrix[3][2]);
+glm::vec3 Cube::GetStretchedPosition() {
+    return glm::vec3((*stretched_model_matrix)[3][0], (*stretched_model_matrix)[3][1], (*stretched_model_matrix)[3][2]);
 }
 
 void Cube::SetPosition(glm::vec3 p_position) {
-    translated_true_model_matrix[3][0] = p_position[0];
-    translated_true_model_matrix[3][1] = p_position[1];
-    translated_true_model_matrix[3][2] = p_position[2];
-    translated_true_position = p_position;
+    (*model_matrix)[3][0] = p_position[0];
+    (*model_matrix)[3][1] = p_position[1];
+    (*model_matrix)[3][2] = p_position[2];
 
-    glm::vec3 stretched_position = p_position;
-    stretched_position[1] *= aspect_ratio;
-
-    model_matrix[3][0] = stretched_position[0];
-    model_matrix[3][1] = stretched_position[1];
-    model_matrix[3][2] = stretched_position[2];
-    position = stretched_position;
+    Cube::UpdateStretch();
 }
 
 bool Cube::IsVisible(glm::mat4 view_projection_matrix) {
@@ -270,16 +243,63 @@ bool Cube::IsVisible(glm::mat4 view_projection_matrix) {
 //=============================
 
 void Cube::Translate(glm::vec3 translation) {
-    glm::vec3 translated_position = translated_true_position + translation;
+    glm::vec3 translated_position = Cube::GetPosition() + translation;
     Cube::SetPosition(translated_position);
 }
 
 void Cube::ResetTranslation() {
-    translated_true_position = true_position;
-    translated_true_model_matrix = true_model_matrix;
+    *model_matrix = *initial_model_matrix;
+    *stretched_model_matrix = *initial_model_matrix;
+}
 
-    position = true_position;
-    model_matrix = true_model_matrix;
+void Cube::Rotate(glm::vec3 rotation) {
+    // Create a rotation matrix (starting from identity)
+    glm::mat4 rotation_matrix = glm::mat4(1.0f);
+
+    // Apply rotations around each axis (in degrees, converted to radians)
+    rotation_matrix = glm::rotate(rotation_matrix, glm::radians(rotation.x), glm::vec3(1, 0, 0)); // Rotate around X-axis
+    rotation_matrix = glm::rotate(rotation_matrix, glm::radians(rotation.y), glm::vec3(0, 1, 0)); // Rotate around Y-axis
+    rotation_matrix = glm::rotate(rotation_matrix, glm::radians(rotation.z), glm::vec3(0, 0, 1)); // Rotate around Z-axis
+
+    // Accumulate the rotation by multiplying the current model_matrix by the new rotation_matrix
+    *model_matrix *= rotation_matrix;
+    
+    Cube::_CalculateUp();
+    Cube::UpdateStretch();
+}
+
+void Cube::UpdateStretch() {
+    *stretched_model_matrix = *model_matrix;
+
+    // create a scaling matrix that scales each axis according to 'up' and the aspect ratio
+    glm::mat4 stretch_matrix = glm::mat4(1.0f);
+
+    // scale each axis based on the 'up' vector and the aspect ratio
+    stretch_matrix[0][0] = 1.0f + up[0] * (aspect_ratio - 1.0f);  // Scale factor for X
+    stretch_matrix[1][1] = 1.0f + up[1] * (aspect_ratio - 1.0f);  // Scale factor for Y
+    stretch_matrix[2][2] = 1.0f + up[2] * (aspect_ratio - 1.0f);  // Scale factor for Z
+
+    // apply the scaling transformation
+    *stretched_model_matrix *= stretch_matrix;
+
+    (*stretched_model_matrix)[3] *= glm::vec4(stretch_matrix[0][0], stretch_matrix[1][1], stretch_matrix[2][2], 1.0f);
+
+    *normal_matrix = glm::transpose(glm::inverse(glm::mat3(*stretched_model_matrix)));
+
+    stretched_size = size * glm::vec3(stretch_matrix[0][0], stretch_matrix[1][1], stretch_matrix[2][2]);
+
+    Cube::UpdatePosition(glm::vec3(0.0f));
+}
+
+glm::vec3 Cube::Stretch(glm::vec3 p_vector) {
+    float stretch_factor = 1.0f + (aspect_ratio - 1.0f) * glm::length(up);
+
+    glm::vec3 stretch_axis = glm::normalize(up);
+    glm::mat3 identity = glm::mat3(1.0f);
+
+    glm::mat3 stretch_matrix = identity + (stretch_factor - 1.0f) * glm::outerProduct(stretch_axis, stretch_axis);
+
+    return stretch_matrix * p_vector;
 }
 
 //=============================
@@ -296,20 +316,20 @@ bool Cube::RayCollides(TotalFrame::Ray ray, float& tmin_out) {
     float tmax = std::numeric_limits<float>::max();
 
     // ray direction from ray origin to cube position (center)
-    glm::vec3 ray_to_pos = position - ray.origin;
+    glm::vec3 ray_to_pos = Cube::GetStretchedPosition() - ray.origin;
 
     // for each axes
     for (int i = 0; i < 3; i++) {
         // the difference in angle between the ray direction and axes direction
-        float axis_projection = glm::dot(ray.direction, axes[i]);
+        float axis_projection = glm::dot(ray.direction, stretched_axes[i]);
         // the distance between this cubes center and the ray direction
-        float distance = glm::dot(ray_to_pos, axes[i]);
+        float distance = glm::dot(ray_to_pos, stretched_axes[i]);
 
         // if the float abs of axis_projection (difference in angle) is near 0 or greater, continue
         if (std::fabs(axis_projection) > 1e-6) {
             // calculate where the ray enters and exits the along this axis
-            float t1 = (distance - half_size[i]) / axis_projection;
-            float t2 = (distance + half_size[i]) / axis_projection;
+            float t1 = (distance - stretched_half_size[i]) / axis_projection;
+            float t2 = (distance + stretched_half_size[i]) / axis_projection;
 
             if (t1 > t2) std::swap(t1, t2);
 
@@ -320,7 +340,7 @@ bool Cube::RayCollides(TotalFrame::Ray ray, float& tmin_out) {
             if (tmin > tmax) return false;
 
         // if the distance is too far from the half_size, there is no overlap
-        } else if (-distance > half_size[i] || distance > half_size[i]) {
+        } else if (-distance > stretched_half_size[i] || distance > stretched_half_size[i]) {
             return false;
         }
     }
@@ -337,22 +357,22 @@ bool Cube::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3& 
     float tmax = std::numeric_limits<float>::max();
 
     // ray direction from ray origin to cube position (center)
-    glm::vec3 ray_to_pos = Cube::GetPosition() - ray.origin;
+    glm::vec3 ray_to_pos = Cube::GetStretchedPosition() - ray.origin;
 
     face_hit_normal_out = glm::vec3(-1000.0f);
 
     // for each axes
     for (int i = 0; i < 3; i++) {
         // the difference in angle between the ray direction and axes direction
-        float axis_projection = glm::dot(ray.direction, axes[i]);
+        float axis_projection = glm::dot(ray.direction, stretched_axes[i]);
         // the distance between this cube center and the ray direction
-        float distance = glm::dot(ray_to_pos, axes[i]);
+        float distance = glm::dot(ray_to_pos, stretched_axes[i]);
 
         // if the float abs of axis_projection (difference in angle) is near 0 or greater, continue
         if (std::fabs(axis_projection) > 1e-6) {
             // calculate where the ray enters and exits the along this axis
-            float t1 = (distance - half_size[i]) / axis_projection;
-            float t2 = (distance + half_size[i]) / axis_projection;
+            float t1 = (distance - stretched_half_size[i]) / axis_projection;
+            float t2 = (distance + stretched_half_size[i]) / axis_projection;
 
             bool entering_negative = t1 < t2;
             if (!entering_negative) std::swap(t1, t2);
@@ -368,7 +388,7 @@ bool Cube::RayCollidesWithFace(TotalFrame::Ray ray, float& tmin_out, glm::vec3& 
             if (tmin > tmax) return false;
 
         // if the distance is too far from the half_size, there is no overlap
-        } else if (-distance > half_size[i] || distance > half_size[i]) {
+        } else if (-distance > stretched_half_size[i] || distance > stretched_half_size[i]) {
             return false;
         }
     }
@@ -407,7 +427,6 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     std::vector<Triangle> temp_triangles = {};
     std::vector<std::string> temp_vertices_str = {};
     std::vector<GLfloat> temp_vertices = {};
-    std::vector<GLfloat> temp_true_vertices = {};
     
     glm::vec3 position_out = glm::vec3(0.0f);
     std::vector<GLfloat> temp_position_out = {};
@@ -446,17 +465,12 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     for (auto line : temp_vertices_str) {
         if (!first_line) {
             temp_vertices = {};
-            temp_true_vertices = {};
             temp_number_str_vertices = "";
 
             for (auto letter : line) {
                 if (letter == ' ') {
                     GLfloat value = std::stof(temp_number_str_vertices);
                     temp_vertices.push_back(value);
-                    temp_true_vertices.push_back(value);
-
-                    // if the number is in that position, that means it is a y value. adjust the y value by aspect ratio
-                    if (temp_vertices.size() == 2 || temp_vertices.size() == 8 || temp_vertices.size() == 14) temp_vertices.back() *= aspect_ratio;
                     
                     temp_number_str_vertices = "";
                     continue;
@@ -466,9 +480,8 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
 
             GLfloat value = std::stof(temp_number_str_vertices);
             temp_vertices.push_back(value);
-            temp_true_vertices.push_back(value);
             
-            temp_triangles.push_back(Triangle(temp_vertices, temp_true_vertices));
+            temp_triangles.push_back(Triangle(temp_vertices));
         }
         first_line = false;
     }
@@ -476,6 +489,15 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     
     p_position_out = position_out;
     return temp_triangles;
+}
+
+//=============================
+// TRANSLATION FUNCTIONS
+//=============================
+
+void Cube::_CalculateUp() {
+    glm::vec3 rotated_up = glm::normalize(glm::vec3(*model_matrix * glm::vec4(true_up, 0.0f)));
+    up = glm::abs(rotated_up);
 }
 
 //=============================

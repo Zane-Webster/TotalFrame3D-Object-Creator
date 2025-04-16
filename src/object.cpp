@@ -33,14 +33,6 @@ std::string Object::GetData() {
     return temp_data;
 }
 
-std::string Object::GetTrueData() {
-    std::string temp_data = "";
-    for (auto cube : cubes) {
-        temp_data += cube.GetTrueData();
-    }
-    return temp_data;
-}
-
 //=============================
 // EXPORTATION FUNCTIONS
 //=============================

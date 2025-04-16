@@ -30,7 +30,7 @@ Cube Creator::GetCubeDefault() {
 }
 
 glm::vec3 Creator::GetCubeDefaultPosition() {
-    return adjusted_cube_default.GetTTPosition();
+    return adjusted_cube_default.GetPosition();
 }
 
 void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
@@ -42,7 +42,7 @@ void Creator::UpdateCubeDefaultPosition(glm::vec3 position) {
 //=============================
 
 Shape Creator::GetShape() {
-    shape.SetSymmetryPositions(adjusted_cube_default.GetTTPosition());
+    shape.SetSymmetryPositions(adjusted_cube_default.GetPosition());
     return shape;
 }
 
@@ -55,7 +55,7 @@ void Creator::SetShape(TotalFrame::SHAPE_TYPE type, Cube cube) {
             break;
         case TotalFrame::SHAPE_TYPE::SYMMETRY:
             shape.symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS;
-            shape.SetSymmetryPositions(adjusted_cube_default.GetTTPosition());
+            shape.SetSymmetryPositions(adjusted_cube_default.GetPosition());
             break;
         case TotalFrame::SHAPE_TYPE::SPHERE:
             break;

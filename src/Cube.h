@@ -44,7 +44,7 @@ class Cube {
         std::string name = "";
         GLuint shader_program = 0;
         glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
-        glm::vec3 true_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
+        glm::vec3 stretched_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
         std::string path = "";
 
         /////// EXTERNAL ATTRIBUTES
@@ -55,7 +55,6 @@ class Cube {
         void Load(std::string path, glm::vec3& position_out, std::string data_str = "");
         void Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights);
         std::string GetData();
-        std::string GetTrueData();
         void Verify();
 
         //////// EXPORTATION FUNCTIONS
@@ -67,7 +66,7 @@ class Cube {
         //////// POSITIONAL FUNCTIONS
         void UpdatePosition(glm::vec3 camera_position);
         glm::vec3 GetPosition();
-        glm::vec3 GetTTPosition();
+        glm::vec3 GetStretchedPosition();
         void SetPosition(glm::vec3 position);
 
         bool IsVisible(glm::mat4 view_projection_matrix);
@@ -75,6 +74,11 @@ class Cube {
         //////// TRANSLATION FUNCTIONS
         void Translate(glm::vec3 translation);
         void ResetTranslation();
+
+        void Rotate(glm::vec3 rotation);
+
+        void UpdateStretch();
+        glm::vec3 Stretch(glm::vec3 vector);
 
         //////// RAY FUNCTIONS
         bool RayCollides(TotalFrame::Ray ray);
@@ -86,12 +90,6 @@ class Cube {
         std::unordered_map<GLuint, std::vector<Triangle>> triangles = {};
 
         //////// POSITION ATTRIBUTES
-        // position to render at during runtime
-        glm::vec3 position = glm::vec3(0.0f);
-        // the true position, not translated
-        glm::vec3 true_position = glm::vec3(0.0f);
-        // the true position, translated, but not stretched by aspect ratio
-        glm::vec3 translated_true_position = glm::vec3(0.0f);
         std::vector<glm::vec3> corners = {};
 
         //////// LINE ATTRIBUTES
@@ -100,20 +98,30 @@ class Cube {
         GLuint lines_vertex_buffer = 0;
 
         //////// TRANSFORMATION ATTRIBUTES
-        glm::mat4 model_matrix = glm::mat4(1.0f);
-        glm::mat4 true_model_matrix = glm::mat4(1.0f);
-        glm::mat4 translated_true_model_matrix = glm::mat4(1.0f);
+        std::shared_ptr<glm::mat4> stretched_model_matrix = std::make_shared<glm::mat4>(1.0f);
+        std::shared_ptr<glm::mat4> model_matrix = std::make_shared<glm::mat4>(1.0f);
+        std::shared_ptr<glm::mat4> initial_model_matrix = std::make_shared<glm::mat4>(1.0f);
 
-        glm::mat3 normal_matrix = glm::mat3(0.0f);
+        std::shared_ptr<glm::mat3> normal_matrix = std::make_shared<glm::mat3>(0.0f);
+
+        glm::vec3 true_up = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
         //////// OBB ATTRIBUTES
-        glm::vec3 half_size = glm::vec3(0.0f);
+        glm::vec3 stretched_half_size = glm::vec3(0.0f);
+
         glm::vec3 camera_scaled_size = glm::vec3(0.1f);
+        glm::vec3 stretched_camera_scaled_size = glm::vec3(0.1f);
+
         glm::vec3 axes[3] = {glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)};
+        glm::vec3 stretched_axes[3] = {glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)};
 
         //////// BASIC FUNCTIONS
         std::vector<Triangle> _Read(std::string path, glm::vec3& position_out);
         std::vector<Triangle> _CreateFromStr(std::string data_str, glm::vec3& position_out);
+
+        //////// TRANSLATION FUNCTIONS
+        void _CalculateUp();
 
         //////// LINE FUNCTIONS
         void _BuildRenderLines();

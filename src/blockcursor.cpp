@@ -14,7 +14,7 @@ void BlockCursor::PlaceOnFace(glm::vec3 p_cube_position, glm::vec3 face_pos) {
     }
 
     // calculate the new translation based on the face looking at
-    glm::vec3 new_translation = face_pos * (cube.true_size * 2.0f);
+    glm::vec3 new_translation = face_pos * (cube.size * 2.0f);
     new_translation += p_cube_position;
 
     // if the face is not the same face the user is already looking it, reset current transformation and set the new one
@@ -28,5 +28,5 @@ void BlockCursor::PlaceOnFace(glm::vec3 p_cube_position, glm::vec3 face_pos) {
 }
 
 glm::vec3 BlockCursor::NextCubePosition() {
-    return cube.GetTTPosition();
+    return cube.GetPosition();
 }
