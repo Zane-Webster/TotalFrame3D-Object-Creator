@@ -15,6 +15,9 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+#include <thread>
+#include <future>
+
 #include "TotalFrame.h"
 #include "Util.h"
 #include "Cube.h"
@@ -104,6 +107,10 @@ class Object {
 
         //////// LIGHTING
         std::shared_ptr<TotalFrame::Light> light = nullptr;
+
+        //////// MULTITHREADING
+        Uint8 total_threads = 0;
+        size_t cube_update_chunk_size = 0;
 
         float aspect_ratio = 1.778f;
 

@@ -4,7 +4,7 @@
 //=============================
 
 Object::Object(TotalFrame::OBJECT_TYPE p_type, float p_aspect_ratio) : type(p_type), aspect_ratio(p_aspect_ratio) {
-    ;
+    total_threads = std::thread::hardware_concurrency();
 }
 
 //=============================
@@ -12,8 +12,39 @@ Object::Object(TotalFrame::OBJECT_TYPE p_type, float p_aspect_ratio) : type(p_ty
 //=============================
 
 void Object::UpdateAndRenderAll(glm::mat4 camera_view_projection_matrix, glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFrame::Light>> lights) {
-    for (auto cube : cubes) {
-        Object::UpdateAndRender(cube, camera_view_projection_matrix, camera_position, lights);
+    // local helper function to process a chunk of cubes
+    auto ProcessCubesInRange = [](Object* object, size_t start_index, size_t end_index, const glm::mat4& view_proj_matrix, const glm::vec3& cam_position, const std::vector<std::shared_ptr<TotalFrame::Light>>& scene_lights) {
+        for (size_t index = start_index; index < end_index; ++index) {
+            Cube& cube = object->cubes[index];
+
+            if (cube.IsVisible(view_proj_matrix)) {
+                object->UpdateSP(cube, true);
+                object->UpdateCubeCameraScale(cube, cam_position, true);
+            }
+        }
+    };
+
+    // futures for async
+    std::vector<std::future<void>> tasks = {};
+
+    // assign tasks by chunk of cubes
+    for (unsigned int thread_index = 0; thread_index < total_threads; ++thread_index) {
+        size_t start = thread_index * cube_update_chunk_size;
+        size_t end = std::min(start + cube_update_chunk_size, cubes.size());
+
+        tasks.push_back(std::async(std::launch::async, ProcessCubesInRange, this, start, end, camera_view_projection_matrix, camera_position, lights));
+    }
+
+    // complete all tasks
+    for (auto& task : tasks) {
+        task.get();
+    }
+
+    // render on main thread
+    for (auto& cube : cubes) {
+        if (cube.IsVisible(camera_view_projection_matrix)) {
+            Object::Render(cube, camera_position, lights, true);
+        }
     }
 }
 
@@ -54,6 +85,8 @@ void Object::Create(std::string name, glm::vec3 position, float size, std::strin
     cubes.push_back(temp_object);
     shader_program_groups[cubes.back().shader_program].push_back(cubes.back());
     shader_programs_need_update[cubes.back().shader_program] = true;
+
+    cube_update_chunk_size = (cubes.size() + total_threads - 1) / total_threads;
 }
 
 void Object::CreateLight(std::shared_ptr<TotalFrame::Light> p_light, std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program, std::string object_data_str) {
@@ -75,6 +108,8 @@ void Object::Add(Cube cube) {
     cubes.push_back(cube);
     shader_program_groups[cube.shader_program].push_back(cube);
     shader_programs_need_update[cube.shader_program] = true;
+
+    cube_update_chunk_size = (cubes.size() + total_threads - 1) / total_threads;
 }
 
 void Object::CreateShape(Shape shape) {
@@ -96,6 +131,7 @@ void Object::Destory(Cube* p_cube) {
             break;
         }
     }
+    cube_update_chunk_size = (cubes.size() + total_threads - 1) / total_threads;
 }
 
 //=============================
