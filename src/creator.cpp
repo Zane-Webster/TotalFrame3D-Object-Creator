@@ -174,3 +174,10 @@ void Creator::ChooseColor() {
 
     adjusted_cube_default.SetColor(color);
 }
+
+void Creator::SetCubeDefaultColor(glm::vec3 p_color) {
+    if (p_color != glm::vec3(-1000.0f)) {
+        color = glm::vec4(p_color[0], p_color[1], p_color[2], 1.0f);
+        cube_default.SetColor(color);
+    }
+}

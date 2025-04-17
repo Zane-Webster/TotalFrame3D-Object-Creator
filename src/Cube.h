@@ -66,6 +66,7 @@ class Cube {
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
+        glm::vec3 GetColor();
 
         //////// POSITIONAL FUNCTIONS
         void UpdatePosition(glm::vec3 camera_position);

@@ -73,7 +73,7 @@ void Triangle::RenderOutline() {
 std::string Triangle::GetData() {
     std::string temp_data = "";
 
-    for (auto vertice : (*vertices)) {
+    for (auto& vertice : (*vertices)) {
         temp_data += std::to_string(vertice);
         temp_data += ' ';
     }
@@ -137,6 +137,10 @@ void Triangle::SetColor(glm::vec3 color) {
     Triangle::UpdateFullVertices();
 
     Triangle::Build();
+}
+
+glm::vec3 Triangle::GetColor() {
+    return glm::vec3((*vertices)[3],(*vertices)[4],(*vertices)[5]);
 }
 
 //=============================

@@ -47,6 +47,7 @@ class Triangle {
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
+        glm::vec3 GetColor();
 
     private:
         std::shared_ptr<TF_TRIANGLE_VERTICES_WITH_NORMAL> full_vertices = std::make_shared<TF_TRIANGLE_VERTICES_WITH_NORMAL>();

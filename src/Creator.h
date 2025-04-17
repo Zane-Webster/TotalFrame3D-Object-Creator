@@ -56,6 +56,7 @@ class Creator {
 
         //////// COLOR FUNCTIONS
         void ChooseColor();
+        void SetCubeDefaultColor(glm::vec3 color);
 
     private:
         std::string objects_path = "";

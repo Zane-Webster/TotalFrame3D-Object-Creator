@@ -244,20 +244,16 @@ int main(int argc, char* argv[]) {
                                 app_running = false;
                                 break;
                             }
-                            
-                            //// ROTATE CAMERA LEFT
-                            if (event.key.key == SDLK_Q) {
-                                
-                            }
-
-                            //// ROTATE CAMERA RIGHT
-                            if (event.key.key == SDLK_E) {
-
-                            }
 
                             //// COLOR PICKER
                             if (event.key.key == SDLK_T) {
-
+                                glm::vec3 face_hit_pos;
+                                //// GET FIRST CUBE HIT
+                                mouse_cube = object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
+                            
+                                if (face_hit_pos != glm::vec3(-1000.0f)) {
+                                    creator.SetCubeDefaultColor(mouse_cube.GetColor());
+                                }
                             }
 
                             //// SYMMETRY TOGGLE

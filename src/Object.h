@@ -83,7 +83,7 @@ class Object {
         void UpdateCubeCameraScale(Cube cube, glm::vec3 camera_position, bool is_visible);
 
         //////// RAYS
-        std::shared_ptr<Cube> GetRayCollidingCube(TotalFrame::Ray ray);
+        Cube GetRayCollidingCube(TotalFrame::Ray ray);
         Cube GetRayCollidingCubeWithFace(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
         Cube* GetRayCollidingCubeWithFacePtr(TotalFrame::Ray ray, glm::vec3& face_hit_normal_out);
         std::vector<std::shared_ptr<Cube>> GetRayCollidingCubes(TotalFrame::Ray ray);

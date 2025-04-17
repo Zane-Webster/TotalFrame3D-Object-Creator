@@ -58,7 +58,7 @@ void Object::UpdateAndRender(Cube cube, glm::mat4 camera_view_projection_matrix,
 
 std::string Object::GetData() {
     std::string temp_data = "";
-    for (auto cube : cubes) {
+    for (auto& cube : cubes) {
         temp_data += cube.GetData();
     }
     return temp_data;
@@ -132,7 +132,7 @@ void Object::ClearAndCreate(std::string name, glm::vec3 position, float size, st
 
     std::vector<std::string> cubes_data = Object::_SplitByCube(Object::_ReadData(obj_path));
 
-    for (auto object_data : cubes_data) {
+    for (const auto& object_data : cubes_data) {
         Object::Create(name, position, size, obj_path, shader_program, object_data);
     }
 }
@@ -216,11 +216,11 @@ void Object::UpdateCubeCameraScale(Cube cube, glm::vec3 camera_position, bool is
 // RAY FUNCTIONS
 //=============================
 
-std::shared_ptr<Cube> Object::GetRayCollidingCube(TotalFrame::Ray ray) {
+Cube Object::GetRayCollidingCube(TotalFrame::Ray ray) {
     // set closest_cube to the farthest possible
     float closest_distance = std::numeric_limits<float>::max();
 
-    std::shared_ptr<Cube> closest_cube = nullptr;
+    Cube closest_cube;
 
     for (auto& cube : cubes) {
         float distance;
@@ -229,7 +229,7 @@ std::shared_ptr<Cube> Object::GetRayCollidingCube(TotalFrame::Ray ray) {
             // if the cube is closer than the others
             if (distance < closest_distance) {
                 closest_distance = distance;
-                closest_cube = std::make_shared<Cube>(cube);
+                closest_cube = cube;
             }
         }
     }
@@ -349,7 +349,7 @@ std::vector<std::string> Object::_SplitByCube(std::string object_data) {
 
     while (std::getline(stream, line)) {
         int spaces = 0;
-        for (auto letter : line) {
+        for (const auto& letter : line) {
             if (letter == ' ') spaces++;
         }
 
@@ -375,7 +375,7 @@ std::vector<std::string> Object::_SplitByCube(std::string object_data) {
 //=============================
 
 void Object::FreeAll() {
-    for (auto object : cubes) {
+    for (auto& object : cubes) {
         object.FreeAll();
     }
 }

@@ -46,7 +46,7 @@ void CameraHandler::UpdateShaderProgram(GLuint shader_program) {
 }
 
 void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
-    for (auto shader_program : shader_programs) {
+    for (auto& shader_program : shader_programs) {
         UpdateShaderProgram(shader_program);
     }
 }

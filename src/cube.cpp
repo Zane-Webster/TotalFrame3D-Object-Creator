@@ -51,7 +51,7 @@ void Cube::Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFr
     Cube::_BuildRenderLines();
 
     // render all triangles
-    for (auto [shader_program, triangles_i] : triangles) {
+    for (auto& [shader_program, triangles_i] : triangles) {
         glUseProgram(shader_program);
 
         glUniformMatrix4fv(glGetUniformLocation(shader_program, "model_matrix"), 1, GL_FALSE, glm::value_ptr(*stretched_model_matrix));
@@ -63,7 +63,7 @@ void Cube::Render(glm::vec3 camera_position, std::vector<std::shared_ptr<TotalFr
         // set normal matrix
         glUniformMatrix3fv(glGetUniformLocation(shader_program, "normal_matrix"), 1, GL_FALSE, glm::value_ptr(*normal_matrix));
 
-        for (auto triangle : triangles_i) {
+        for (auto& triangle : triangles_i) {
             triangle.Render();
         }
     }
@@ -86,8 +86,8 @@ std::string Cube::GetData() {
     temp_data += '\n';
 
     // get vertices data
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
+    for (auto& [sp, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
             temp_data += triangle.GetData();
             temp_data += '\n';
         } 
@@ -97,8 +97,8 @@ std::string Cube::GetData() {
 }
 
 void Cube::Verify() {
-    for (auto [shader_program, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
+    for (auto& [shader_program, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
             if (triangle.Verify() == false) {
                 Util::ThrowError("INVALID VERTEX ARRAY", "Cube::Verify");
             }
@@ -170,17 +170,17 @@ bool Cube::RayCollidesWithCorners(TotalFrame::Ray ray, glm::vec3 ignore_point) {
             for (int z = -1; z <= 1; z += 2) {
                 glm::vec3 corner = center + glm::vec3(x, y, z) * half_size;
 
-                // skip if this corner is the one we're testing
                 if (glm::all(glm::epsilonEqual(corner, ignore_point, 0.001f))) continue;
-
+            
                 glm::vec3 to_corner = corner - ray.origin;
-                float t = glm::dot(to_corner, ray.direction);
-
-                if (t < 0.0f) continue;
-
-                glm::vec3 intersection = ray.origin + t * ray.direction;
-
-                if (glm::distance(intersection, corner) < 0.01f) return true;
+                float t = glm::dot(to_corner, ray.direction); // projection of corner onto ray direction
+            
+                if (t < 0.0f) continue; // corner is behind ray origin
+            
+                glm::vec3 closest_point = ray.origin + t * ray.direction;
+                float dist = glm::distance(closest_point, corner);
+            
+                if (dist < 0.01f) return true; // adjust threshold as needed
             }
         }
     }
@@ -227,11 +227,15 @@ void Cube::RemoveTrianglesByCorners(std::vector<glm::vec3> removed_corners) {
 //=============================
 
 void Cube::SetColor(glm::vec3 color) {
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
+    for (auto& [sp, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
             triangle.SetColor(color);
         }
     }
+}
+
+glm::vec3 Cube::GetColor() {
+    return triangles.begin()->second[0].GetColor();
 }
 
 //=============================
@@ -322,7 +326,7 @@ void Cube::SetPosition(glm::vec3 p_position) {
 }
 
 bool Cube::IsVisible(glm::mat4 view_projection_matrix) {
-    for (auto corner : corners) {
+    for (auto& corner : corners) {
         glm::vec4 clip_space_position = view_projection_matrix * glm::vec4(corner, 1.0f);
         // normalize to -1 thru 1 by the transformation value
         clip_space_position /= clip_space_position.w;
@@ -533,7 +537,7 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     
     // read through the entire cube data string and split it into triangle data lines
     std::string temp_number_str = "";
-    for (auto letter : data_str) {
+    for (const auto& letter : data_str) {
         if (letter == '\n') {
             temp_vertices_str.push_back(temp_number_str);
             temp_number_str = "";
@@ -544,7 +548,7 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
 
     // read through first line and set position out
     std::string temp_number_str_pos = "";
-    for (auto letter : temp_vertices_str[0]) {
+    for (const auto& letter : temp_vertices_str[0]) {
         if (letter == ' ') {
             temp_position_out.push_back(std::stof(temp_number_str_pos));
             temp_number_str_pos = "";
@@ -562,12 +566,12 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     // read through each set of vertices (triangle data), add to temp_vertices, create a triangle from the temp_vertices, and build the triangle
     std::string temp_number_str_vertices = "";
     bool first_line = true;
-    for (auto line : temp_vertices_str) {
+    for (const auto& line : temp_vertices_str) {
         if (!first_line) {
             temp_vertices = {};
             temp_number_str_vertices = "";
 
-            for (auto letter : line) {
+            for (const auto& letter : line) {
                 if (letter == ' ') {
                     GLfloat value = std::stof(temp_number_str_vertices);
                     temp_vertices.push_back(value);
@@ -639,8 +643,8 @@ void Cube::_RenderLines() {
 
 void Cube::FreeAll() {
     // free all triangles
-    for (auto [shader_program, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
+    for (auto& [shader_program, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
             triangle.FreeAll();
         }
     } 
