@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <algorithm>
 
 #include <filesystem>
 #include <fstream>
@@ -47,7 +48,7 @@ class Cube {
         glm::vec3 stretched_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
         std::string path = "";
 
-        /////// EXTERNAL ATTRIBUTES
+        //////// EXTERNAL ATTRIBUTES
         float aspect_ratio = 0.0f;
 
         //////// BASIC FUNCTIONS
@@ -58,7 +59,10 @@ class Cube {
         void Verify();
 
         //////// EXPORTATION FUNCTIONS
-        std::string GetExportData();
+        std::vector<std::array<TotalFrame::Ray, 14>> GetCornersRays();
+        bool RayCollidesWithCorners(TotalFrame::Ray ray, glm::vec3 ignore_point);
+
+        void RemoveTrianglesByCorners(std::vector<glm::vec3> removed_corners);
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
@@ -88,6 +92,7 @@ class Cube {
     private:
         //////// BASIC ATTRIBUTES
         std::unordered_map<GLuint, std::vector<Triangle>> triangles = {};
+        std::vector<Triangle> export_triangles = {};
 
         //////// POSITION ATTRIBUTES
         std::vector<glm::vec3> corners = {};

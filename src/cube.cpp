@@ -109,17 +109,117 @@ void Cube::Verify() {
 //=============================
 // EXPORTATION FUNCTIONS
 //=============================
-std::string Cube::GetExportData() {
-    std::string temp_data = "";
-    // get vertices data
-    for (auto [sp, triangles_i] : triangles) {
-        for (auto triangle : triangles_i) {
-            temp_data += triangle.GetData();
-            temp_data += '\n';
-        } 
+
+std::vector<std::array<TotalFrame::Ray, 14>> Cube::GetCornersRays() {
+    std::vector<glm::vec3> export_corners = {};
+
+    glm::vec3 center = Cube::GetPosition();
+    glm::vec3 half_size = size * 0.5f;
+
+    for (int x = -1; x <= 1; x += 2) {
+        for (int y = -1; y <= 1; y += 2) {
+            for (int z = -1; z <= 1; z += 2) {
+                glm::vec3 offset = glm::vec3(x, y, z) * half_size;
+                export_corners.push_back(center + offset);
+            }
+        }
     }
 
-    return temp_data;
+    std::vector<glm::vec3> directions = {
+        // Axis-aligned directions (±1, 0, 0), (0, ±1, 0), (0, 0, ±1)
+        glm::vec3(1, 0, 0),  // +X
+        glm::vec3(-1, 0, 0), // -X
+        glm::vec3(0, 1, 0),  // +Y
+        glm::vec3(0, -1, 0), // -Y
+        glm::vec3(0, 0, 1),  // +Z
+        glm::vec3(0, 0, -1), // -Z
+
+        // Corner diagonals (±1, ±1, ±1)
+        glm::normalize(glm::vec3(1, 1, 1)),   // +X +Y +Z
+        glm::normalize(glm::vec3(-1, 1, 1)),  // -X +Y +Z
+        glm::normalize(glm::vec3(1, -1, 1)),  // +X -Y +Z
+        glm::normalize(glm::vec3(1, 1, -1)),  // +X +Y -Z
+        glm::normalize(glm::vec3(-1, -1, 1)), // -X -Y +Z
+        glm::normalize(glm::vec3(-1, 1, -1)), // -X +Y -Z
+        glm::normalize(glm::vec3(1, -1, -1)), // +X -Y -Z
+        glm::normalize(glm::vec3(-1, -1, -1)) // -X -Y -Z
+    };
+
+    std::vector<std::array<TotalFrame::Ray, 14>> temp_corners_rays = {};
+
+    for (const auto& corner : export_corners) {
+        std::array<TotalFrame::Ray, 14> temp_corner_rays;  // one array per corner
+
+        for (size_t d = 0; d < directions.size(); d++) {
+            temp_corner_rays[d].origin = corner;
+            temp_corner_rays[d].direction = glm::normalize(directions[d]);
+        }
+
+        temp_corners_rays.push_back(temp_corner_rays);
+    }
+
+    return temp_corners_rays;
+}
+
+bool Cube::RayCollidesWithCorners(TotalFrame::Ray ray, glm::vec3 ignore_point) {
+    glm::vec3 center = Cube::GetPosition();
+    glm::vec3 half_size = size * 0.5f;
+
+    for (int x = -1; x <= 1; x += 2) {
+        for (int y = -1; y <= 1; y += 2) {
+            for (int z = -1; z <= 1; z += 2) {
+                glm::vec3 corner = center + glm::vec3(x, y, z) * half_size;
+
+                // skip if this corner is the one we're testing
+                if (glm::all(glm::epsilonEqual(corner, ignore_point, 0.001f))) continue;
+
+                glm::vec3 to_corner = corner - ray.origin;
+                float t = glm::dot(to_corner, ray.direction);
+
+                if (t < 0.0f) continue;
+
+                glm::vec3 intersection = ray.origin + t * ray.direction;
+
+                if (glm::distance(intersection, corner) < 0.01f) return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void Cube::RemoveTrianglesByCorners(std::vector<glm::vec3> removed_corners) {
+    glm::vec3 cube_pos = GetPosition();
+
+    for (auto& [sp, triangles_i] : triangles) {
+        // erase triangle if condition returns true
+        triangles_i.erase(
+            std::remove_if(triangles_i.begin(), triangles_i.end(),
+                [&](const Triangle& tri) {
+
+                    auto raw = tri.vertices;
+
+                    // if not valid vertices
+                    if (!raw || raw->size() < 18) return false;
+
+                    // Check each of the 3 triangle vertices
+                    for (int i = 0; i < 18; i += 6) {
+                        glm::vec3 translated_vertex = glm::vec3((*raw)[i], (*raw)[i+1], (*raw)[i+2]) + cube_pos;
+
+                        // compare against removed_corners, if matches, return true and erase
+                        for (const auto& corner : removed_corners) {
+                            // gives 0.001 error margin
+                            if (glm::all(glm::epsilonEqual(translated_vertex, corner, 0.001f))) {
+                                return true; // Remove this triangle
+                            }
+                        }
+                    }
+
+                    return false;
+                }),
+            triangles_i.end()
+        );
+    }
 }
 
 //=============================

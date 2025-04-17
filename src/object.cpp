@@ -67,14 +67,47 @@ std::string Object::GetData() {
 //=============================
 // EXPORTATION FUNCTIONS
 //=============================
-std::string Object::GetExportData() {
-    std::string temp_data = "";
-    for (auto cube : cubes) {
-        temp_data += cube.GetExportData();
-    }
-    return temp_data;
-}
 
+std::string Object::GetExportData() {
+    // for every cube
+    for (int i = 0; i < cubes.size(); i++) {
+        std::vector<std::array<TotalFrame::Ray, 14>> all_corners_rays = cubes[i].GetCornersRays();
+        std::vector<bool> cubes_collision = {};
+        std::vector<glm::vec3> not_visible_corners = {};
+        // for each set of corner rays from the starting cube, get a list of bools if each corner ray collides with a cube
+        for (auto& corner_rays : all_corners_rays) {
+            // for each individual corner ray from the starting cube
+            for (int j = 0; j < corner_rays.size(); j++) {
+                bool collides_with_cube = false;
+                // compare to each cube to see if it collides
+                for (int k = 0; k < cubes.size(); k++) {
+                    if (k == i) continue; // skip self
+                    if (cubes[k].RayCollidesWithCorners(corner_rays[j], corner_rays[j].origin)) {
+                        collides_with_cube = true;
+                        break;
+                    }
+                }
+                // push back all cube collision states from the corner rays
+                cubes_collision.push_back(collides_with_cube);
+            }
+        }
+
+        // each corner has 6 rays; mark the corner not visible if all 14 rays are blocked
+        for (int c = 0; c < all_corners_rays.size(); c++) {
+            int base_index = c * 14;
+            bool all_rays_blocked = std::all_of(cubes_collision.begin() + base_index, cubes_collision.begin() + base_index + 14,
+                                                [](bool blocked) { return blocked; });
+
+            if (all_rays_blocked) {
+                not_visible_corners.push_back(all_corners_rays[c][0].origin);
+            }
+        }
+
+        if (not_visible_corners.size() > 0) cubes[i].RemoveTrianglesByCorners(not_visible_corners);
+    }
+
+    return Object::GetData();
+}
 
 //=============================
 // CREATION FUNCTIONS
@@ -114,7 +147,7 @@ void Object::Add(Cube cube) {
 
 void Object::CreateShape(Shape shape) {
     //FIXME: using shape.cube.path means color isn't updated. using shape.GetData() means position isn't properly changed
-    for (auto position : shape.positions) {
+    for (const auto& position : shape.positions) {
         Object::Create(shape.cube.name, position, shape.cube.size[0], shape.cube.path, shape.cube.shader_program);
     }
 } 
@@ -140,13 +173,13 @@ void Object::Destory(Cube* p_cube) {
 
 void Object::Translate(glm::vec3 translation) {
     position += translation;
-    for (auto cube : cubes) {
+    for (auto& cube : cubes) {
         cube.Translate(translation);
     }
 }
 
 void Object::Rotate(glm::vec3 rotation, glm::vec3 camera_position) {
-    for (auto cube : cubes) {
+    for (auto& cube : cubes) {
         //cube.Rotate(rotation, camera_position);
     }
 }
@@ -162,7 +195,7 @@ void Object::UpdateSP(Cube cube, bool is_visible) {
 
 std::vector<GLuint> Object::GetShaderProgramsUpdates() {
     std::vector<GLuint> temp_shader_programs = {};
-    for (auto [shader_program, need_update] : shader_programs_need_update) {
+    for (auto& [shader_program, need_update] : shader_programs_need_update) {
         if (need_update) {
             temp_shader_programs.push_back(shader_program);
             need_update = false;
@@ -189,7 +222,7 @@ std::shared_ptr<Cube> Object::GetRayCollidingCube(TotalFrame::Ray ray) {
 
     std::shared_ptr<Cube> closest_cube = nullptr;
 
-    for (auto cube : cubes) {
+    for (auto& cube : cubes) {
         float distance;
         // if the cube collides with the ray
         if (cube.RayCollides(ray, distance)) {
@@ -212,7 +245,7 @@ Cube Object::GetRayCollidingCubeWithFace(TotalFrame::Ray ray, glm::vec3& face_hi
 
     glm::vec3 closest_face_hit_normal = glm::vec3(-1000.0f);
 
-    for (auto cube : cubes) {
+    for (auto& cube : cubes) {
         float distance;
         glm::vec3 face_hit_normal;
         // if the cube collides with the ray
@@ -261,11 +294,9 @@ Cube* Object::GetRayCollidingCubeWithFacePtr(TotalFrame::Ray ray, glm::vec3& fac
 
 std::vector<std::shared_ptr<Cube>> Object::GetRayCollidingCubes(TotalFrame::Ray ray) {
     std::vector<std::shared_ptr<Cube>> intersecting_cubes = {};
-    for (auto cube : cubes) {
-        for (auto cube : cubes) {
-            if (cube.RayCollides(ray)) {
-                intersecting_cubes.push_back(std::make_shared<Cube>(cube));
-            }
+    for (auto& cube : cubes) {
+        if (cube.RayCollides(ray)) {
+            intersecting_cubes.push_back(std::make_shared<Cube>(cube));
         }
     }
     return intersecting_cubes;

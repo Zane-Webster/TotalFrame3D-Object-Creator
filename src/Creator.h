@@ -48,7 +48,7 @@ class Creator {
         void Save(std::string object_data);
         bool NewObject();
 
-        void Export(std::string object_data);
+        bool Export(std::string object_data);
         bool NewExport();
 
         //////// LOADING FUNCTIONS

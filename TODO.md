@@ -3,7 +3,6 @@
 ## TO DO:
 
 **BIG:**</br>
-- multithreading
 - add skybox properties with tile objects
 - create docs
 

@@ -241,6 +241,8 @@ int main(int argc, char* argv[]) {
                             //// EXPORT
                             if (event.key.key == SDLK_M) {
                                 creator.Export(object.GetExportData());
+                                app_running = false;
+                                break;
                             }
                             
                             //// ROTATE CAMERA LEFT

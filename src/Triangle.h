@@ -29,6 +29,9 @@ class Triangle {
         Triangle(std::vector<GLfloat> vertices);
         void FreeAll();
 
+        //////// BASIC ATTRIBUTES
+        std::shared_ptr<TF_TRIANGLE_VERTICES> vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
+
         //////// BASIC FUNCTIONS
         // verifys vertex_array and vertex_buffer is valid (non-zero)
         bool Verify();
@@ -46,7 +49,6 @@ class Triangle {
         void SetColor(glm::vec3 color);
 
     private:
-        std::shared_ptr<TF_TRIANGLE_VERTICES> vertices = std::make_shared<TF_TRIANGLE_VERTICES>();
         std::shared_ptr<TF_TRIANGLE_VERTICES_WITH_NORMAL> full_vertices = std::make_shared<TF_TRIANGLE_VERTICES_WITH_NORMAL>();
 
         glm::vec3 normal = glm::vec3(0.0f);

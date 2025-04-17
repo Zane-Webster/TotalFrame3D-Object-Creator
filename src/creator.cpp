@@ -106,20 +106,22 @@ bool Creator::NewObject() {
     return true;
 }
 
-void Creator::Export(std::string object_data) {
+bool Creator::Export(std::string object_data) {
     // if untitled (not yet saved), create a new object. if the user exits, cancel save and return
-    if (!Creator::NewExport()) return;
+    if (!Creator::NewExport()) return false;
 
     std::ofstream out_file(exports_path, std::ios::out | std::ios::trunc);
 
     if (!out_file) {
         Util::ThrowError("FAILED TO OPEN FILE", "Creator::Export");
-        return;
+        return false;
     }
 
     out_file << object_data;
 
     out_file.close();
+
+    return true;
 }
 
 bool Creator::NewExport() {
