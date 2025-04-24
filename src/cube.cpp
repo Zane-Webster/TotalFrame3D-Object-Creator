@@ -23,13 +23,16 @@ void Cube::Create(std::string p_name, glm::vec3 p_position, float p_size, std::s
     aspect_ratio = p_aspect_ratio;
     path = p_path;
 
+    // position
     glm::vec3 temp_position = glm::vec3(0.0f);
-
     Cube::Load(p_path, temp_position, data_str);
 
     // if position is being read from file, read from file then set position, otherwise set defined position
     if (p_position == TotalFrame::READ_POS_FROM_FILE) Cube::SetPosition(temp_position);
     else Cube::SetPosition(p_position);
+
+    // size
+    if (p_size == TotalFrame::READ_SIZE_FROM_FILE) size = glm::vec3(Cube::_ReadSize());
 
     *initial_model_matrix = *model_matrix;
 
@@ -135,14 +138,14 @@ std::vector<std::array<TotalFrame::Ray, 14>> Cube::GetCornersRays() {
         glm::vec3(0, 0, -1), // -Z
 
         // Corner diagonals (±1, ±1, ±1)
-        glm::normalize(glm::vec3(1, 1, 1)),   // +X +Y +Z
-        glm::normalize(glm::vec3(-1, 1, 1)),  // -X +Y +Z
-        glm::normalize(glm::vec3(1, -1, 1)),  // +X -Y +Z
-        glm::normalize(glm::vec3(1, 1, -1)),  // +X +Y -Z
-        glm::normalize(glm::vec3(-1, -1, 1)), // -X -Y +Z
-        glm::normalize(glm::vec3(-1, 1, -1)), // -X +Y -Z
-        glm::normalize(glm::vec3(1, -1, -1)), // +X -Y -Z
-        glm::normalize(glm::vec3(-1, -1, -1)) // -X -Y -Z
+        glm::vec3(1, 1, 1),   // +X +Y +Z
+        glm::vec3(-1, 1, 1),  // -X +Y +Z
+        glm::vec3(1, -1, 1),  // +X -Y +Z
+        glm::vec3(1, 1, -1),  // +X +Y -Z
+        glm::vec3(-1, -1, 1), // -X -Y +Z
+        glm::vec3(-1, 1, -1), // -X +Y -Z
+        glm::vec3(1, -1, -1), // +X -Y -Z
+        glm::vec3(-1, -1, -1) // -X -Y -Z
     };
 
     std::vector<std::array<TotalFrame::Ray, 14>> temp_corners_rays = {};
@@ -220,6 +223,16 @@ void Cube::RemoveTrianglesByCorners(std::vector<glm::vec3> removed_corners) {
             triangles_i.end()
         );
     }
+}
+
+std::vector<Triangle*> Cube::GetTriangles() {
+    std::vector<Triangle*> temp_triangles = {};
+    for (auto& [sp, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
+            temp_triangles.push_back(&triangle);
+        }
+    }
+    return temp_triangles;
 }
 
 //=============================
@@ -593,6 +606,22 @@ std::vector<Triangle> Cube::_CreateFromStr(std::string data_str, glm::vec3& p_po
     
     p_position_out = position_out;
     return temp_triangles;
+}
+
+float Cube::_ReadSize() {
+    float low_extent = std::numeric_limits<float>::max();
+    float high_extent = -std::numeric_limits<float>::max();
+
+    for (auto& [sp, triangles_i] : triangles) {
+        for (auto& triangle : triangles_i) {
+            for (const auto& vertex : triangle.GetPositions()) {
+                low_extent = std::min(low_extent, vertex.x);
+                high_extent = std::max(high_extent, vertex.x);
+            }
+        }
+    }
+
+    return high_extent - low_extent;
 }
 
 //=============================

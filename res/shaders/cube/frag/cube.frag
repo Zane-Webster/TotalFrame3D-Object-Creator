@@ -12,7 +12,7 @@ uniform float light_intensity;
 
 void main() {
     // Ambient
-    vec3 ambient = 0.3 * base_color;
+    vec3 ambient = 0.15 * base_color;
 
     // Diffuse
     vec3 light_dir = normalize(light_position - frag_position);

@@ -84,8 +84,43 @@ std::string Triangle::GetData() {
 }
 
 //=============================
+// EXPORTATION FUNCTIONS
+//=============================
+
+void Triangle::Translate(glm::vec3 translation) {
+    std::string temp_data = "";
+
+    int stride = 6;
+    for (int i = 0; i < 3; i++) {
+        int index = i * stride;
+        
+        (*vertices)[index + 0] += translation.x;
+        (*vertices)[index + 1] += translation.y;
+        (*vertices)[index + 2] += translation.z;
+    }
+
+    Triangle::UpdateFullVertices();
+}
+
+std::vector<glm::vec3> Triangle::GetPositions() {
+    std::vector<glm::vec3> temp_positions = {};
+    int stride = 6;
+    for (int i = 0; i < 3; i++) {
+        int index = i * stride;
+        
+        temp_positions.push_back(glm::vec3((*vertices)[index + 0], (*vertices)[index + 1], (*vertices)[index + 2]));
+    }
+    return temp_positions;
+}
+
+//=============================
 // NORMAL FUNCTIONS
 //=============================
+
+glm::vec3 Triangle::GetNormal() {
+    Triangle::UpdateNormal();
+    return normal;
+}
 
 void Triangle::UpdateNormal() {
     glm::vec3 point_1 = glm::vec3((*vertices)[0], (*vertices)[1], (*vertices)[2]);

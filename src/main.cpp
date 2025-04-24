@@ -92,13 +92,13 @@ int main(int argc, char* argv[]) {
 
     Object object(TotalFrame::OBJECT_TYPE::CUBE_OBJ, window_handler.aspect_ratio);
 
-    creator.SetCubeDefault(Cube("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/cube.tfobj_dev", cube_sp, window_handler.aspect_ratio));
+    creator.SetCubeDefault(Cube("cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::READ_SIZE_FROM_FILE, "res/tfobj/0.05_cube.tfobj_dev", cube_sp, window_handler.aspect_ratio));
 
-    object.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
+    object.Create("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::READ_SIZE_FROM_FILE, "res/tfobj/0.05_cube.tfobj_dev", cube_sp);
 
-    light_handler.Create(glm::vec3(0.5f, 1.2f, 1.0f), glm::vec3(1.0f), 2.0f);
+    light_handler.Create(glm::vec3(4.0f, 12.0f, 8.0f), glm::vec3(1.0f), 1.5f);
 
-    BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/block_cursor.tfobj_dev", block_cursor_sp, window_handler.aspect_ratio);
+    BlockCursor block_cursor("block cursor", TotalFrame::READ_POS_FROM_FILE, TotalFrame::READ_SIZE_FROM_FILE, "res/tfobj/0.05_cube.tfobj_dev", block_cursor_sp, window_handler.aspect_ratio);
 
     ////////// TEXT
 
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
                                 if (*creator.GetName() != "untitled") creator.Save(object.GetData());
                                 std::string loaded_object_path = creator.Load();
                                 if (loaded_object_path != "\n") {
-                                    object.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, loaded_object_path, cube_sp);
+                                    object.ClearAndCreate("new object", TotalFrame::READ_POS_FROM_FILE, TotalFrame::READ_SIZE_FROM_FILE, loaded_object_path, cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
                             if (event.key.key == SDLK_N) {
                                 if (*creator.GetName() != "untitled") creator.Save(object.GetData());
                                 if (creator.NewObject()) {
-                                    object.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::TRIANGLE_SIZE, "res/tfobj/starting_cube.tfobj_dev", cube_sp);
+                                    object.ClearAndCreate("starting cube", TotalFrame::READ_POS_FROM_FILE, TotalFrame::READ_SIZE_FROM_FILE, "res/tfobj/0.05_cube.tfobj_dev", cube_sp);
                                     window_handler.NeedRender();
                                     window_handler.UpdateName();
                                 }
@@ -259,6 +259,24 @@ int main(int argc, char* argv[]) {
                             //// SYMMETRY TOGGLE
                             if (event.key.key == SDLK_1) {
                                 creator.ToggleSymmetry(creator.GetCubeDefault(), TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
+                            }
+                            
+                            //// OBJECT TRANSLATION
+                            if (event.key.key == SDLK_DOWN) {
+                                object.Translate(glm::vec3(0.0f, -0.05f, 0.0f));
+                                window_handler.NeedRender();
+                            }
+                            if (event.key.key == SDLK_UP) {
+                                object.Translate(glm::vec3(0.0f, 0.05f, 0.0f));
+                                window_handler.NeedRender();
+                            }
+                            if (event.key.key == SDLK_LEFT) {
+                                object.Translate(glm::vec3(-0.05f, 0.0f, 0.0f));
+                                window_handler.NeedRender();
+                            }
+                            if (event.key.key == SDLK_RIGHT) {
+                                object.Translate(glm::vec3(0.05f, 0.0f, 0.0f));
+                                window_handler.NeedRender();
                             }
                         }
 

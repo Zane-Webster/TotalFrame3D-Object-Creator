@@ -44,8 +44,8 @@ class Cube {
         //////// BASIC ATTRIBUTES
         std::string name = "";
         GLuint shader_program = 0;
-        glm::vec3 size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
-        glm::vec3 stretched_size = glm::vec3(TotalFrame::TRIANGLE_SIZE);
+        glm::vec3 size = glm::vec3(TotalFrame::READ_SIZE_FROM_FILE);
+        glm::vec3 stretched_size = glm::vec3(TotalFrame::READ_SIZE_FROM_FILE);
         std::string path = "";
 
         //////// EXTERNAL ATTRIBUTES
@@ -63,6 +63,8 @@ class Cube {
         bool RayCollidesWithCorners(TotalFrame::Ray ray, glm::vec3 ignore_point);
 
         void RemoveTrianglesByCorners(std::vector<glm::vec3> removed_corners);
+
+        std::vector<Triangle*> GetTriangles();
 
         //////// COLOR FUNCTIONS
         void SetColor(glm::vec3 color);
@@ -125,6 +127,7 @@ class Cube {
         //////// BASIC FUNCTIONS
         std::vector<Triangle> _Read(std::string path, glm::vec3& position_out);
         std::vector<Triangle> _CreateFromStr(std::string data_str, glm::vec3& position_out);
+        float _ReadSize();
 
         //////// TRANSLATION FUNCTIONS
         void _CalculateUp();

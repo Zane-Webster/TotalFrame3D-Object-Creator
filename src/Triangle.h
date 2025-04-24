@@ -40,8 +40,13 @@ class Triangle {
         void Render();
         void RenderOutline();
         std::string GetData();
+        
+        //////// EXPORTATION FUNCTIONS
+        void Translate(glm::vec3 translation);
+        std::vector<glm::vec3> GetPositions();
 
         //////// NORMAL FUNCTIONS
+        glm::vec3 GetNormal();
         void UpdateNormal();
         void UpdateFullVertices();
 

@@ -63,7 +63,7 @@ class TotalFrame {
         static constexpr TF_MOVEMENT_KEYSET ARROW_MOVEMENT_KEYS = {SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT, SDLK_SPACE, SDLK_LCTRL};
         static constexpr std::array<TF_MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
 
-        static constexpr float TRIANGLE_SIZE = 0.1f;
+        static constexpr float READ_SIZE_FROM_FILE = -1000.0f;
         static constexpr glm::vec3 READ_POS_FROM_FILE = glm::vec3(-1000.0f);
 
         struct Material {
