@@ -3,7 +3,7 @@
 ## TO DO:
 
 **BIG:**</br>
-- add skybox properties with tile objects
+- add Renderer with batches and multithreading for skybox inclusion in object rendering. unneccesarily calculating view and projection matrix
 - create docs
 
 **MEDIUM:**</br>

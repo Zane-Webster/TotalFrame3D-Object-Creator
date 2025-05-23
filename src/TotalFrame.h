@@ -16,27 +16,36 @@
 
 /*
 ABOUT:
-Contains TotalFrame structs
-*/
+Contains TotalFrame structs, enums and constants
 
+STRUCTS:
+Material(ambient lighting coefficient, diffusion lighting coefficient, specular lighting coefficient, shininess lighting coefficient)
+Light(position, color, intensity)
+MoveQueue(key set)
+Ray(origin, direction)
+*/
 
 using TF_MOVEMENT_KEYSET = std::array<SDL_Keycode, 6>;
 using TF_TRIANGLE_VERTICES = std::array<GLfloat, 18>;
 using TF_TRIANGLE_VERTICES_WITH_NORMAL = std::array<GLfloat, 27>;
+using TF_SKYBOX_PATHS = std::array<std::string, 6>;
 
 class TotalFrame {
     public:
+        // keyset options. default = WASD
         enum KEYSET {
             WASD,
             ARROWKEYS
         };
         
+        // object types. default = CUBE_OBJ
         enum OBJECT_TYPE {
             CUBE_OBJ,
             TILE_OBJ,
             TEXTURE_OBJ
         };
 
+        // shape types. default = SHAPE_NONE
         enum SHAPE_TYPE {
             SHAPE_NONE,
             SYMMETRY,
@@ -44,6 +53,7 @@ class TotalFrame {
             SQUARE
         };
 
+        // symmetry types. default = SYMMETRY_NONE
         enum SYMMETRY_TYPE {
             SYMMETRY_NONE,
             ALL_AXIS,
@@ -52,6 +62,7 @@ class TotalFrame {
             Z_AXIS
         };
 
+        // movement keys depending on movement keyset
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_LEFT = {SDLK_A, SDLK_LEFT};
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_RIGHT = {SDLK_D, SDLK_RIGHT};
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_UP = {SDLK_SPACE, SDLK_SPACE};
@@ -59,8 +70,11 @@ class TotalFrame {
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_FORWARD = {SDLK_W, SDLK_UP};
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_BACK = {SDLK_S, SDLK_DOWN};
 
+        // contains all movement keys for different keysets
         static constexpr TF_MOVEMENT_KEYSET WASD_MOVEMENT_KEYS = {SDLK_W, SDLK_A, SDLK_S, SDLK_D, SDLK_SPACE, SDLK_LCTRL};
         static constexpr TF_MOVEMENT_KEYSET ARROW_MOVEMENT_KEYS = {SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT, SDLK_SPACE, SDLK_LCTRL};
+
+        // contains all movement keys keysets for easy access
         static constexpr std::array<TF_MOVEMENT_KEYSET, 2> MOVEMENT_KEYS = {WASD_MOVEMENT_KEYS, ARROW_MOVEMENT_KEYS};
 
         static constexpr float READ_SIZE_FROM_FILE = -1000.0f;

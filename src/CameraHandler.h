@@ -34,6 +34,8 @@ class CameraHandler {
 
         //////// GENERAL FUNCTIONS
         glm::mat4 GetViewProjectionMatrix();
+        glm::mat4 GetViewMatrix();
+        glm::mat4 GetProjectionMatrix();
 
         //////// SHADER PROGRAM FUNCTIONS
         void UpdateShaderProgram(GLuint shader_program);
@@ -92,8 +94,6 @@ class CameraHandler {
 
         //// OPENGL CAMERA FUNCTIONS
         void _UpdateMatrices();
-        glm::mat4 _GetViewMatrix();
-        glm::mat4 _GetProjectionMatrix();
 
         //////// MOUSE MOVEMENT FUNCTIONS
         void _UpdateCameraDirections();

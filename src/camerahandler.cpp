@@ -19,8 +19,8 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
 
     CameraHandler::_UpdateMatrices();
 
-    projection_matrix = CameraHandler::_GetProjectionMatrix();
-    inverse_projection_matrix = glm::inverse(CameraHandler::_GetProjectionMatrix());
+    projection_matrix = CameraHandler::GetProjectionMatrix();
+    inverse_projection_matrix = glm::inverse(CameraHandler::GetProjectionMatrix());
 }
 
 //=============================
@@ -29,6 +29,14 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
 
 glm::mat4 CameraHandler::GetViewProjectionMatrix() {
     return projection_matrix * view_matrix;
+}
+
+glm::mat4 CameraHandler::GetViewMatrix() {
+    return glm::lookAt(position, position + front, up);
+}
+
+glm::mat4 CameraHandler::GetProjectionMatrix() {
+    return glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane);
 }
 
 //=============================
@@ -156,16 +164,8 @@ TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
 //=============================
 
 void CameraHandler::_UpdateMatrices() {
-    view_matrix = CameraHandler::_GetViewMatrix();
-    inverse_view_matrix = glm::inverse(CameraHandler::_GetViewMatrix());
-}
-
-glm::mat4 CameraHandler::_GetViewMatrix() {
-    return glm::lookAt(position, position + front, up);
-}
-
-glm::mat4 CameraHandler::_GetProjectionMatrix() {
-    return glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane);
+    view_matrix = CameraHandler::GetViewMatrix();
+    inverse_view_matrix = glm::inverse(CameraHandler::GetViewMatrix());
 }
 
 void CameraHandler::_UpdateCameraDirections() {

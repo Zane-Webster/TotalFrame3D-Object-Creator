@@ -31,16 +31,27 @@ ZANE WEBSTER
 #include "tinyfiledialogs.h"
 
 //// TOTAL-FRAME LIBRARIES
+// basic
 #include "TotalFrame.h"
 #include "Util.h"
 #include "WindowHandler.h"
 #include "AudioHandler.h"
+
+// textures
+#include "Texture.h"
+
+// opengl handlers
 #include "ShaderHandler.h"
 #include "CameraHandler.h"
 #include "LightHandler.h"
+
+// opengl objects
 #include "Triangle.h"
 #include "Cube.h"
 #include "Object.h"
+#include "Skybox.h"
+
+// object creator
 #include "Creator.h"
 #include "BlockCursor.h"
 #include "Shape.h"
@@ -89,6 +100,9 @@ int main(int argc, char* argv[]) {
     ////////// GAME OBJECTS
     GLuint cube_sp = shader_handler.CreateShaderProgram("res/shaders/cube");
     GLuint block_cursor_sp = shader_handler.CreateShaderProgram("res/shaders/block_cursor");
+    GLuint skybox_sp = shader_handler.CreateShaderProgram("res/shaders/skybox");
+
+    Skybox skybox("res/skybox", skybox_sp);
 
     Object object(TotalFrame::OBJECT_TYPE::CUBE_OBJ, window_handler.aspect_ratio);
 
@@ -319,6 +333,9 @@ int main(int argc, char* argv[]) {
                 window_handler.Clear();
 
                 camera.UpdateShaderPrograms(object.GetShaderProgramsUpdates());
+
+                skybox.Render(camera.GetViewMatrix(), camera.GetProjectionMatrix());
+
                 object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position, light_handler.lights);
 
                 // update block_cursor seperate so it doesn't get saved to tfobj file

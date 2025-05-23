@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -Wno-unused -Wno-missing-field-initializers -Wno-implicit-fallthrough -Iinclude -Iinclude/SDL3 -Iinclude/GL -Iinclude/glm -Iinclude/tfd
+CXXFLAGS = -Wall -Wextra -std=c++17 -Wno-unused -Wno-missing-field-initializers -Wno-implicit-fallthrough -Iinclude -Iinclude/SDL3 -Iinclude/GL -Iinclude/glm -Iinclude/tfd -Iinclude/stb
 LDFLAGS = -Llib -Wl,-subsystem,windows
 LIBS = -lmingw32 -lSDL3 -lSDL3_image -lSDL3_mixer -lSDL3_ttf -lglew32 -lopengl32 -lole32 -luuid -lcomdlg32
 
