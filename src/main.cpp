@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     TTF_Init();
 
     ////////// APP HANDLERS
-    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", false, 30.0f);
+    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", false, 60.0f);
     AudioHandler audio_handler;
     Renderer renderer;
     ShaderHandler shader_handler(window_handler.context);
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
                             if (camera.UpdateMouseMovement(mouse_x, mouse_y)) window_handler.NeedRender();
                         } else {
                             //// FACE TESTING
-                            glm::vec3 face_hit_pos;
+                            glm::vec3 face_hit_pos; 
                             mouse_cube = object.GetRayCollidingCubeWithFace(camera.MouseToWorldRay(mouse_x, mouse_y), face_hit_pos);
                             block_cursor.PlaceOnFace(mouse_cube.GetPosition(), face_hit_pos);
                         }
