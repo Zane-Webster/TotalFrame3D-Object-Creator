@@ -6,6 +6,9 @@
 #include <iostream>
 #include <array>
 #include <unordered_map>
+#include <functional>
+#include <vector>
+#include <algorithm>
 
 #include <SDL3/SDL.h>
 
@@ -45,23 +48,6 @@ class TotalFrame {
             TEXTURE_OBJ
         };
 
-        // shape types. default = SHAPE_NONE
-        enum SHAPE_TYPE {
-            SHAPE_NONE,
-            SYMMETRY,
-            SPHERE,
-            SQUARE
-        };
-
-        // symmetry types. default = SYMMETRY_NONE
-        enum SYMMETRY_TYPE {
-            SYMMETRY_NONE,
-            ALL_AXIS,
-            X_AXIS,
-            Y_AXIS,
-            Z_AXIS
-        };
-
         // movement keys depending on movement keyset
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_LEFT = {SDLK_A, SDLK_LEFT};
         static constexpr std::array<SDL_Keycode, 2> MOVEMENT_KEY_RIGHT = {SDLK_D, SDLK_RIGHT};
@@ -79,6 +65,11 @@ class TotalFrame {
 
         static constexpr float READ_SIZE_FROM_FILE = -1000.0f;
         static constexpr glm::vec3 READ_POS_FROM_FILE = glm::vec3(-1000.0f);
+
+        struct RenderItem {
+            int layer;
+            std::function<void()> RenderFunction;
+        };
 
         struct Material {
             Material(glm::vec3 p_ambient, glm::vec3 p_diffuse, glm::vec3 p_specular, GLfloat p_shininess) : ambient(p_ambient), diffuse(p_diffuse), specular(p_specular), shininess(p_shininess) {

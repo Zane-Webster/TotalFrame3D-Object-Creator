@@ -1,10 +1,10 @@
-#include "CameraHandler.h"
+#include "Camera.h"
 
 //=============================
 // DEFAULT CONSTRUCTOR
 //=============================
 
-CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, Uint16 p_window_height, float p_move_speed, float p_sensitivity, float p_fov, TotalFrame::KEYSET movement_keyset) 
+Camera::Camera(glm::vec3 p_start_position, Uint16 p_window_width, Uint16 p_window_height, float p_move_speed, float p_sensitivity, float p_fov, TotalFrame::KEYSET movement_keyset) 
              : position(p_start_position), window_width(p_window_width), window_height(p_window_height), fov(p_fov), sensitivity(p_sensitivity), move_speed(p_move_speed) {
     // calculate aspect ratio
     aspect_ratio = float(window_width / window_height);
@@ -17,33 +17,29 @@ CameraHandler::CameraHandler(glm::vec3 p_start_position, Uint16 p_window_width, 
     last_x = p_window_width / 2.0f;
     last_y = p_window_height / 2.0f;
 
-    CameraHandler::_UpdateMatrices();
+    Camera::_UpdateMatrices();
 
-    projection_matrix = CameraHandler::GetProjectionMatrix();
-    inverse_projection_matrix = glm::inverse(CameraHandler::GetProjectionMatrix());
+    projection_matrix = glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane);
+    inverse_projection_matrix = glm::inverse(projection_matrix);
 }
 
 //=============================
 // GENERAL FUNCTIONS
 //=============================
 
-glm::mat4 CameraHandler::GetViewProjectionMatrix() {
-    return projection_matrix * view_matrix;
+glm::mat4 Camera::GetViewMatrix() {
+    return view_matrix;
 }
 
-glm::mat4 CameraHandler::GetViewMatrix() {
-    return glm::lookAt(position, position + front, up);
-}
-
-glm::mat4 CameraHandler::GetProjectionMatrix() {
-    return glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane);
+glm::mat4 Camera::GetProjectionMatrix() {
+    return projection_matrix;
 }
 
 //=============================
 // SHADER PROGRAM FUNCTIONS
 //=============================
 
-void CameraHandler::UpdateShaderProgram(GLuint shader_program) {
+void Camera::UpdateShaderProgram(GLuint shader_program) {
     glUseProgram(shader_program);
 
     // pass view and projection to shader program
@@ -53,7 +49,7 @@ void CameraHandler::UpdateShaderProgram(GLuint shader_program) {
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 }
 
-void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
+void Camera::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
     for (auto& shader_program : shader_programs) {
         UpdateShaderProgram(shader_program);
     }
@@ -63,11 +59,11 @@ void CameraHandler::UpdateShaderPrograms(std::vector<GLuint> shader_programs) {
 // KEYBOARD MOVEMENT FUNCTIONS
 //=============================
 
-void CameraHandler::StartMove(SDL_Keycode key) {
+void Camera::StartMove(SDL_Keycode key) {
     move_queue.Add(key);
 }
 
-bool CameraHandler::UpdateMovement() {
+bool Camera::UpdateMovement() {
     if (move_queue.move_dir[0] == 0 && move_queue.move_dir[1] == 0 && move_queue.move_dir[2] == 0) return false;
     // moving left
     if (move_queue.move_dir[0] == -1) position -= glm::normalize(glm::cross(front, world_up)) * move_speed;
@@ -82,13 +78,13 @@ bool CameraHandler::UpdateMovement() {
     // moving forward
     else if (move_queue.move_dir[2] == 1) position += move_speed * front;
 
-    CameraHandler::_UpdateMatrices();
+    Camera::_UpdateMatrices();
 
     return true;
 }
 
 
-void CameraHandler::StopMove(SDL_Keycode key) {
+void Camera::StopMove(SDL_Keycode key) {
     move_queue.Remove(key);
 }
 
@@ -96,7 +92,7 @@ void CameraHandler::StopMove(SDL_Keycode key) {
 // MOUSE MOVEMENT FUNCTIONS
 //=============================
 
-void CameraHandler::StartMouseMove(float x, float y) {
+void Camera::StartMouseMove(float x, float y) {
     if (!mouse_moving) {
         last_x = x;
         last_y = y;
@@ -104,7 +100,7 @@ void CameraHandler::StartMouseMove(float x, float y) {
     }
 }
 
-bool CameraHandler::UpdateMouseMovement(float x, float y) {
+bool Camera::UpdateMouseMovement(float x, float y) {
     if (!mouse_moving) return false;
 
     float x_offset = (last_x - x) * sensitivity;
@@ -119,9 +115,9 @@ bool CameraHandler::UpdateMouseMovement(float x, float y) {
     if (yaw > 360.0f) yaw -= 360.0f;
     if (yaw < 0.0f) yaw += 360.0f;
 
-    CameraHandler::_UpdateCameraDirections();
+    Camera::_UpdateCameraDirections();
 
-    CameraHandler::_UpdateMatrices();
+    Camera::_UpdateMatrices();
 
     last_x = x;
     last_y = y;
@@ -129,7 +125,7 @@ bool CameraHandler::UpdateMouseMovement(float x, float y) {
     return true;
 }
 
-void CameraHandler::StopMouseMove() {
+void Camera::StopMouseMove() {
     if (mouse_moving) mouse_moving = false;
 }
 
@@ -137,7 +133,7 @@ void CameraHandler::StopMouseMove() {
 // RAY FUNCTIONS
 //=============================
 
-TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
+TotalFrame::Ray Camera::MouseToWorldRay(float mouse_x, float mouse_y) {
     // normalized device coordinates (NDC)
     float x = (2.0f * mouse_x) / window_width - 1.0f;
     float y = 1.0f - (2.0f * mouse_y) / window_height;  // flip y because OpenGL's origin is at bottom-left
@@ -163,12 +159,12 @@ TotalFrame::Ray CameraHandler::MouseToWorldRay(float mouse_x, float mouse_y) {
 // PRIVATE FUNCTIONS
 //=============================
 
-void CameraHandler::_UpdateMatrices() {
-    view_matrix = CameraHandler::GetViewMatrix();
-    inverse_view_matrix = glm::inverse(CameraHandler::GetViewMatrix());
+void Camera::_UpdateMatrices() {
+    view_matrix = glm::lookAt(position, position + front, up);;
+    inverse_view_matrix = glm::inverse(view_matrix);
 }
 
-void CameraHandler::_UpdateCameraDirections() {
+void Camera::_UpdateCameraDirections() {
     // calculate front vector (direction) accounting for mouse movement
     glm::vec3 front_temp;
     front_temp.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));

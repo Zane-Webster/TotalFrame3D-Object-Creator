@@ -23,7 +23,6 @@
 #include "TotalFrame.h"
 #include "Util.h"
 #include "Cube.h"
-#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -63,8 +62,6 @@ class Object {
         void ClearAndCreate(std::string name, glm::vec3 position, float size, std::string obj_path, GLuint shader_program);
         // adds a pre-created cube
         void Add(Cube cube);
-
-        void CreateShape(Shape shape);
 
         //////// CUBE DESTRUCTION
         void Destory(Cube* cube);

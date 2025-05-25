@@ -36,13 +36,14 @@ ZANE WEBSTER
 #include "Util.h"
 #include "WindowHandler.h"
 #include "AudioHandler.h"
+#include "Renderer.h"
 
 // textures
 #include "Texture.h"
 
 // opengl handlers
 #include "ShaderHandler.h"
-#include "CameraHandler.h"
+#include "Camera.h"
 #include "LightHandler.h"
 
 // opengl objects
@@ -54,7 +55,6 @@ ZANE WEBSTER
 // object creator
 #include "Creator.h"
 #include "BlockCursor.h"
-#include "Shape.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
@@ -65,10 +65,11 @@ int main(int argc, char* argv[]) {
     TTF_Init();
 
     ////////// APP HANDLERS
-    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", false, 60.0f);
+    WindowHandler window_handler(1920, 1080, {0.025f, 0.05f, 0.10f, 1.0f}, "TotalFrame3D Object Creator", false, 30.0f);
     AudioHandler audio_handler;
+    Renderer renderer;
     ShaderHandler shader_handler(window_handler.context);
-    CameraHandler camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
+    Camera camera(glm::vec3(0.0f, 1.0f, 3.0f), window_handler.width, window_handler.height, 0.025f, 0.1f, 70.0f);
     Creator creator(std::filesystem::current_path().string() + "/../objects", std::filesystem::current_path().string() + "/../export");
     LightHandler light_handler;
 
@@ -163,8 +164,7 @@ int main(int argc, char* argv[]) {
                         
                             if (block_cursor.visible) {
                                 creator.UpdateCubeDefaultPosition(block_cursor.NextCubePosition());
-                                if (creator.GetShape().type == TotalFrame::SHAPE_TYPE::SHAPE_NONE) object.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetData());
-                                else object.CreateShape(creator.GetShape());
+                                object.Create(creator.GetCubeDefault().name, creator.GetCubeDefaultPosition(), creator.GetCubeDefault().size[0], "", creator.GetCubeDefault().shader_program, creator.GetCubeDefault().GetData());
                                 window_handler.NeedRender();
                             }
                         }
@@ -269,11 +269,6 @@ int main(int argc, char* argv[]) {
                                     creator.SetCubeDefaultColor(mouse_cube.GetColor());
                                 }
                             }
-
-                            //// SYMMETRY TOGGLE
-                            if (event.key.key == SDLK_1) {
-                                creator.ToggleSymmetry(creator.GetCubeDefault(), TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
-                            }
                             
                             //// OBJECT TRANSLATION
                             if (event.key.key == SDLK_DOWN) {
@@ -331,17 +326,19 @@ int main(int argc, char* argv[]) {
 
             if (window_handler.StartRender()) {
                 window_handler.Clear();
+                renderer.Clear();
 
-                camera.UpdateShaderPrograms(object.GetShaderProgramsUpdates());
+                renderer.Add(skybox, 1);
+                renderer.Add(object, 2);
 
-                skybox.Render(camera.GetViewMatrix(), camera.GetProjectionMatrix());
+                camera.UpdateShaderPrograms(renderer.GetShaderProgramsUpdates());
 
-                object.UpdateAndRenderAll(camera.GetViewProjectionMatrix(), camera.position, light_handler.lights);
+                renderer.RenderAll(camera.GetViewMatrix(), camera.GetProjectionMatrix(), camera.position, light_handler.lights);
 
                 // update block_cursor seperate so it doesn't get saved to tfobj file
                 if (block_cursor.visible) {
                     camera.UpdateShaderPrograms({block_cursor_sp});
-                    object.UpdateAndRender(block_cursor.cube, camera.GetViewProjectionMatrix(), camera.position, light_handler.lights);
+                    object.UpdateAndRender(block_cursor.cube, camera.GetProjectionMatrix() * camera.GetViewMatrix(), camera.position, light_handler.lights);
                 }
 
                 window_handler.Update();
@@ -353,6 +350,7 @@ int main(int argc, char* argv[]) {
     ////////// MEMORY MANAGEMENT
     audio_handler.FreeAll();
     object.FreeAll();
+    skybox.FreeAll();
 
     SDL_Quit();
     Mix_Quit();

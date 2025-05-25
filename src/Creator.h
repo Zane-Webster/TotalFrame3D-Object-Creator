@@ -16,7 +16,6 @@
 
 #include "TotalFrame.h"
 #include "Util.h"
-#include "Shape.h"
 #include "Cube.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -38,12 +37,6 @@ class Creator {
         glm::vec3 GetCubeDefaultPosition();
         void UpdateCubeDefaultPosition(glm::vec3 position);
 
-        //////// SHAPE CREATION FUNCTIONS
-        Shape GetShape();
-        void SetShape(TotalFrame::SHAPE_TYPE type, Cube cube);
-
-        void ToggleSymmetry(Cube cube, TotalFrame::SYMMETRY_TYPE symmetry_type = TotalFrame::SYMMETRY_TYPE::ALL_AXIS);
-
         //////// SAVING FUNCTIONS
         void Save(std::string object_data);
         bool NewObject();
@@ -63,9 +56,7 @@ class Creator {
         std::string exports_path = "";
         std::string object_path = "";
         std::shared_ptr<std::string> object_name = std::make_shared<std::string>("untitled");
-
-        Shape shape;
-
+        
         // the cube that will be placed by default
         Cube cube_default;
         Cube adjusted_cube_default;

@@ -27,6 +27,8 @@ class Texture {
         int channels = 0;
 
         void Build(std::string path);
+        
+        void Render();
 
         void Bind(int unit = 0);
 

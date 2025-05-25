@@ -40,6 +40,10 @@ void Texture::Build(std::string path) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Texture::Render() {
+    ;
+}
+
 void Texture::Bind(int unit) {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, id);

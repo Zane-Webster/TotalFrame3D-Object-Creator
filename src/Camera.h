@@ -1,5 +1,5 @@
-#ifndef SRC_CAMERAHANDLER_H_
-#define SRC_CAMERAHANDLER_H_
+#ifndef SRC_CAMERA_H_
+#define SRC_CAMERA_H_
 
 #pragma once
 
@@ -23,17 +23,16 @@ Ensure you attach ViewProjectionMatrix to ObjectHandler
 
 */
 
-class CameraHandler {
+class Camera {
     public:
         //////// CONSTUCTOR
-        CameraHandler(glm::vec3 start_position, Uint16 window_width, Uint16 window_height, float move_speed = 0.01f, float sensitivity = 0.1f, float fov = 45.0f, TotalFrame::KEYSET movement_keyset = TotalFrame::KEYSET::WASD);
+        Camera(glm::vec3 start_position, Uint16 window_width, Uint16 window_height, float move_speed = 0.01f, float sensitivity = 0.1f, float fov = 45.0f, TotalFrame::KEYSET movement_keyset = TotalFrame::KEYSET::WASD);
 
         //////// CAMERA ATTRIBUTES
         // camera pos
         glm::vec3 position;
 
         //////// GENERAL FUNCTIONS
-        glm::mat4 GetViewProjectionMatrix();
         glm::mat4 GetViewMatrix();
         glm::mat4 GetProjectionMatrix();
 
@@ -99,4 +98,4 @@ class CameraHandler {
         void _UpdateCameraDirections();
 };
 
-#endif // SRC_CAMERAHANDLER_H_
+#endif // SRC_CAMERA_H_
